@@ -6,9 +6,9 @@ import java.util.Arrays;
 import java.util.Stack;
 
 public class ReversiModel implements ReversiManager {
-    Player[][] board;
-    Player turn;
-    Stack<ReversiData> undo = new Stack<>();
+    private Player[][] board;
+    private Player turn;
+    private Stack<ReversiData> undo = new Stack<>();
     @Override
     public boolean move(Point coordinates) {
         return false;
@@ -16,7 +16,12 @@ public class ReversiModel implements ReversiManager {
 
     @Override
     public boolean undo() {
-        return false;
+        if(undo.isEmpty())
+            return false;
+        ReversiData aux = undo.pop();
+        board = aux.getBoard();
+        turn = aux.getTurn();
+        return true;
     }
 
     @Override

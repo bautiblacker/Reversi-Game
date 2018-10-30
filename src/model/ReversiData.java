@@ -1,14 +1,19 @@
 package model;
 
-import javafx.beans.property.ObjectProperty;
-
-
 public class ReversiData {
-    private ObjectProperty<Player> turn;
-    private ObjectProperty<Player>[][] board;
+    private Player turn;
+    private Player[][] board;
 
-    public ReversiData(ObjectProperty<Player> turn, ObjectProperty<Player>[][] board) {
+    public ReversiData(Player turn, Player[][] board) {
         this.turn = turn;
         this.board = board;
+    }
+
+    public Player getTurn() {
+        return turn;
+    }
+
+    public Player[][] getBoard() {
+        return board;
     }
 }
