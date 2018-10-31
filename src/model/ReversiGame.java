@@ -16,6 +16,7 @@ public class ReversiGame implements ReversiManager {
     public ReversiGame(int boardSize, AI ai) {
         turn = Player.BLACK;
         undoStack = new Stack<>();
+        possibleMoves = new HashMap<>();
         board = new Board(boardSize);
         updatePossibleMoves();
     }
