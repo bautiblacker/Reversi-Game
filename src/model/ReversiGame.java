@@ -18,12 +18,14 @@ public class ReversiGame implements ReversiManager {
         undoStack = new Stack<>();
         possibleMoves = new HashMap<>();
         board = new Board(boardSize);
+        aiOptions = ai;
         updatePossibleMoves();
     }
     public ReversiGame(ReversiGame old, AI newAi) {
         this.board = old.board;
         this.turn = old.turn;
         this.undoStack = old.undoStack;
+        this.possibleMoves = old.possibleMoves;
         this.aiOptions = newAi;
     }
 
