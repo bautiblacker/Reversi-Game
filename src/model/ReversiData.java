@@ -1,19 +1,23 @@
 package model;
 
+import utils.Point;
+
+import java.util.Collection;
+
 public class ReversiData {
-    private Player turn;
-    private Player[][] board;
+    private Point placed;
+    private Collection<Point> flipped;
 
-    public ReversiData(Player turn, Player[][] board) {
-        this.turn = turn;
-        this.board = board;
+    public ReversiData(Point placed, Collection<Point> flipped) {
+        this.placed = placed;
+        this.flipped = flipped;
     }
 
-    public Player getTurn() {
-        return turn;
+    public Point getPlaced() {
+        return placed;
     }
 
-    public Player[][] getBoard() {
-        return board;
+    public Collection<Point> getFlipped() {
+        return flipped;
     }
 }
