@@ -11,7 +11,6 @@ import java.util.Map;
 public class Board {
     private int boardSize;
     private Map<Point, Player> board;
-    private Map<Point, Collection<Point>> possibleMoves;
 
     public Board(int boardSize) {
         this.boardSize = boardSize;
@@ -66,33 +65,5 @@ public class Board {
                 toReturn.add(point);
         });
         return toReturn;
-    }
-    private void updatePossibleMoves(Player turn) {
-        possibleMoves.clear();
-        board.forEach((point, player) ->{
-            if(player.equals(Player.NONE))
-                evaluateMove(point, turn);
-        });
-    }
-
-    private void evaluateMove(Point point, Player turn) {
-        for (Direction dir : Direction.values()) {
-            findLineRec(point, point, dir, turn);
-        }
-
-
-    }
-
-    private void findLineRec(Point original, Point point, Direction dir, Player turn) {
-        if(dir.next(point).getX() >= boardSize || dir.next(point).getX() < 0 ||
-                dir.next(point).getY() >= boardSize || dir.next(point).getY() < 0 ||
-                board.get(dir.next(point)).equals(Player.NONE))
-            return;
-
-        if(board.get(dir.next(point)).equals(turn.opposite()))
-            findLineRec(original, dir.next(point), dir, turn);
-        if(!possibleMoves.containsKey(original))
-            possibleMoves.put(original, new HashSet<>());
-        possibleMoves.get(original).add(point);
     }
 }
