@@ -1,0 +1,30 @@
+import javafx.scene.layout.GridPane;
+import model.ReversiManager;
+import utils.Point;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Board extends GridPane {
+    private Map<Point, Space> board;
+    private int size;
+    private ReversiManager game;
+
+    public Board(int size, ReversiManager game) {
+        super();
+        this.size = size;
+        board = new HashMap<>(size * size);
+        this.game = game;
+        for(Point point : board.keySet()) {
+            add(new Space(point, game), point.getY(), point.getX());
+        }
+    }
+
+    public void setSpace(Point point, Space space) {
+        board.put(point, space);
+        add(space, point.getY(), point.getX());
+    }
+    public Space getSpace(Point point) {
+        return board.get(point);
+    }
+}
