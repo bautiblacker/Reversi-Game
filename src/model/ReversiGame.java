@@ -88,27 +88,24 @@ public class ReversiGame implements ReversiManager {
 
     private void evaluateMove(Point point) {
         for (Direction dir : Direction.values()) {
-            findLineRec(point, dir.next(point), dir);
+            Point next = dir.next(point);
+            if(board.isValidPosition(next) && board.getPlayer(next) != Player.NONE)
+                findLineRec(point, next, dir);
         }
-
-
     }
 
-    private void findLineRec(Point original, Point point, Direction dir) {
-        if(isInvalidBoardPos(point, dir))
-            return;
-
-        if(board.getPlayer(dir.next(point)) == (turn.opposite()))
-            findLineRec(original, dir.next(point), dir);
-        if(!possibleMoves.containsKey(original))
-            possibleMoves.put(original, new HashSet<>());
-        possibleMoves.get(original).add(point);
+    private boolean findLineRec(Point original, Point point, Direction dir) {
+        Point next = dir.next(point);
+        if(board.getPlayer(point) == turn)
+            return true;
+        if(!board.isValidPosition(point) || board.getPlayer(point) == Player.NONE)
+            return false;
+        if(findLineRec(original, dir.next(point), dir)) {
+            if (!possibleMoves.containsKey(original))
+                possibleMoves.put(original, new HashSet<>());
+            possibleMoves.get(original).add(point);
+            return true;
+        }
+        return false;
     }
-
-    private boolean isInvalidBoardPos(Point point, Direction dir) {
-        return dir.next(point).getX() >= board.getSize() || dir.next(point).getX() < 0 ||
-                dir.next(point).getY() >= board.getSize() || dir.next(point).getY() < 0 ||
-                board.getPlayer(dir.next(point)) == (Player.NONE);
-    }
-
 }
