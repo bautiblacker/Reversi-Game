@@ -35,7 +35,7 @@ class ReversiGameTest {
         game.move(new Point(0, 1));
         game.move(new Point(0, 2));
         game.move(new Point(0, 3));
-        Player expected = Player.WHITE;
+        Player expected = Player.BLACK;
         Player actual1 = game.getPlayer(new Point(0, 2));
         Player actual2 = game.getPlayer(new Point(1, 2));
         assertSame(expected, actual1);
@@ -48,6 +48,10 @@ class ReversiGameTest {
 
     @Test
     void pass() {
+        game = new ReversiGame(8, new AI(0, null, 0, false));
+        assertFalse(game.pass());
+        //encontrar serie de moves que hagan que pass sea valido.
+
     }
 
     @Test
