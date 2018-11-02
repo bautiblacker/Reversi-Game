@@ -66,4 +66,7 @@ public class Board {
         });
         return toReturn;
     }
+    public boolean isValidPosition(Point point) {
+        return board.containsKey(point);
+    }
 }

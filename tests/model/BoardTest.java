@@ -72,4 +72,14 @@ class BoardTest {
         assertEquals(blacks, board.findMatchingPoints(Player.BLACK));
 
     }
+
+    @Test
+    void isValidPosition() {
+        Point existing = new Point(3, 3); //white
+        Point notExisting = new Point(-1, -1);
+
+        assertTrue(board.isValidPosition(existing));
+        assertFalse(board.isValidPosition(notExisting));
+
+    }
 }
