@@ -30,19 +30,19 @@ public class ReversiGame implements ReversiManager {
     }
 
     @Override
-    public boolean move(Point point) {
+    public Collection<Point> move(Point point) {
         if(possibleMoves.keySet().isEmpty())
             throw new IllegalArgumentException(); //TODO crear una exception linda.
         if(!isValidMove(point)) {
-            return false;
+            return null;
         }
-
-        board.flip(possibleMoves.get(point));
+        Collection<Point> toReturn = possibleMoves.get(point);
+        board.flip(toReturn);
         board.setPlayer(point, turn);
-        undoStack.push(new ReversiData(point, possibleMoves.get(point)));
+        undoStack.push(new ReversiData(point,toReturn));
         turn = turn.opposite();
         updatePossibleMoves();
-        return true;
+        return toReturn;
     }
 
     @Override
@@ -53,6 +53,7 @@ public class ReversiGame implements ReversiManager {
         board.setPlayer(aux.getPlaced(), Player.NONE);
         board.flip(aux.getFlipped());
         turn = turn.opposite();
+        updatePossibleMoves();
         return true;
     }
 
@@ -71,9 +72,20 @@ public class ReversiGame implements ReversiManager {
         return possibleMoves.keySet();
     }
 
+
+    private Collection<Point> getFlipped() {
+        if(undoStack.isEmpty())
+            return new Stack<>();
+        return undoStack.peek().getFlipped();
+    }
     @Override
     public Player getPlayer(Point point) {
         return board.getPlayer(point);
+    }
+
+    @Override
+    public Player getTurn() {
+        return turn;
     }
 
     private boolean isValidMove(Point coordinates) {
