@@ -1,0 +1,11 @@
+
+
+.black {
+    -fx-background-color: black;
+}
+.red {
+    -fx-background-color: red;
+}
+.possible {
+    -fx-background-color: blue;
+}
