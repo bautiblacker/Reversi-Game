@@ -3,6 +3,7 @@ package model;
 import utils.AI;
 import utils.Direction;
 import utils.Point;
+import utils.Tree;
 
 import java.util.*;
 
@@ -76,6 +77,22 @@ public class ReversiGame implements ReversiManager {
         return board.getPlayer(point);
     }
 
+    @Override
+    public void playsCPU() {
+        /* TODO: este es el min y max, hay que implementar el min y max para cada tipo de parametro, si es por depth o por tiempo y eso*/
+    }
+
+    private Tree buildTree() { // TODO: check este metodo, lo hice medio quemado.
+        Board b = board;
+        Tree t = new Tree(b);
+        for(Point point : possibleMoves.keySet()) {
+            Board b2 = b; // asi b no cambia;
+            if(b2.flip(possibleMoves.get(point)))
+                t.add(b2);
+        }
+        return t;
+    }
+
     private boolean isValidMove(Point coordinates) {
         return possibleMoves.containsKey(coordinates);
     }
@@ -90,8 +107,6 @@ public class ReversiGame implements ReversiManager {
         for (Direction dir : Direction.values()) {
             findLineRec(point, dir.next(point), dir);
         }
-
-
     }
 
     private void findLineRec(Point original, Point point, Direction dir) {
@@ -110,5 +125,4 @@ public class ReversiGame implements ReversiManager {
                 dir.next(point).getY() >= board.getSize() || dir.next(point).getY() < 0 ||
                 board.getPlayer(dir.next(point)) == (Player.NONE);
     }
-
 }
