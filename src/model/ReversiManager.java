@@ -7,7 +7,7 @@ import java.util.Collection;
 
 public interface ReversiManager extends Serializable {
     Collection<Point> move(Point coordinates); //Places chip and returns flipped.
-    boolean undo();
+    ReversiData undo();
     boolean pass();
     Player getPlayer(Point point);
     Player getTurn();

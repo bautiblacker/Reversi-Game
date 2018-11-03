@@ -46,15 +46,15 @@ public class ReversiGame implements ReversiManager {
     }
 
     @Override
-    public boolean undo() {
+    public ReversiData undo() {
         if(undoStack.isEmpty())
-            return false;
+            return null;
         ReversiData aux = undoStack.pop();
         board.setPlayer(aux.getPlaced(), Player.NONE);
         board.flip(aux.getFlipped());
         turn = turn.opposite();
         updatePossibleMoves();
-        return true;
+        return aux;
     }
 
     @Override

@@ -12,6 +12,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.scene.input.MouseEvent;
 import model.Player;
+import model.ReversiData;
 import model.ReversiGame;
 import model.ReversiManager;
 import utils.AI;
@@ -46,15 +47,22 @@ public class Controller {
         for (int i = 0; i < 8; i++){
             for (int j = 0; j < 8; j++){
                 Point current = new Point(j, i);
-                Space space = new Space(current, game, this);
+                Space space = new Space();
                 observableBoard.put(current, space);
             }
         }
         observableBoard.forEach((k,v) -> {
+            v.setOnMouseClicked(e ->
+                {
+                setFlipped(game.move(k));
+                if( flipped != null ) {
+                 v.updateImage(game.getPlayer(k));
+                 drawBoard();
+            }
+        });
             v.updateImage(game.getPlayer(k));
             gridPane.add(v, k.getY(), k.getX());
         });
-        //drawBoard();
     }
 
     public void drawBoard() {
@@ -68,14 +76,24 @@ public class Controller {
     }
 
 
-    @FXML protected void handlePassButtonAction(ActionEvent event) { textToShow.setText("Pass Button Pressed"); }
+    @FXML
+    public void handlePassButtonAction(ActionEvent event) { textToShow.setText("Pass Button Pressed"); }
 
-    @FXML protected void handleUndoButtonAction(ActionEvent event) {
+    @FXML
+    public
+    void handleUndoButtonAction(ActionEvent event) {
         //TODO FIX
-        game.undo();
+        ReversiData aux = game.undo();
+        if(aux != null) {
+            for (Point point : aux.getFlipped()) {
+                observableBoard.get(point).updateImage(game.getPlayer(point));
+            }
+            observableBoard.get(aux.getPlaced()).updateImage(game.getPlayer(aux.getPlaced()));
+        }
         drawBoard();
     }
 
-    @FXML protected void handleTreeButtonAction(ActionEvent event) { textToShow.setText("Pass Tree Pressed"); }
+    @FXML
+    protected void handleTreeButtonAction(ActionEvent event) { textToShow.setText("Pass Tree Pressed"); }
 
 }
