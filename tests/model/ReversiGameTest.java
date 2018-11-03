@@ -18,8 +18,8 @@ class ReversiGameTest {
     @Test
     void move() {
         game = new ReversiGame(8, new AI(0, null, 0, false));
-        assertNotNull(game.move(new Point(2, 3)));
-        assertNull(game.move(new Point(2, 3)));
+        assertTrue(game.move(new Point(2, 3)));
+        assertFalse(game.move(new Point(2, 3)));
     }
     @Test
     void colorsFlipCorrectly() {
