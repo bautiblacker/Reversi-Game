@@ -30,19 +30,17 @@ public class ReversiGame implements ReversiManager {
     }
 
     @Override
-    public Collection<Point> move(Point point) {
-        if(possibleMoves.keySet().isEmpty())
-            throw new IllegalArgumentException(); //TODO crear una exception linda.
+    public boolean move(Point point) {
         if(!isValidMove(point)) {
-            return null;
+            return false;
         }
-        Collection<Point> toReturn = possibleMoves.get(point);
-        board.flip(toReturn);
+        Collection<Point> toFlip = possibleMoves.get(point);
+        board.flip(toFlip);
         board.setPlayer(point, turn);
-        undoStack.push(new ReversiData(point,toReturn));
+        undoStack.push(new ReversiData(point,toFlip));
         turn = turn.opposite();
         updatePossibleMoves();
-        return toReturn;
+        return true;
     }
 
     @Override
@@ -59,6 +57,10 @@ public class ReversiGame implements ReversiManager {
 
     @Override
     public boolean pass() {
+        if(getState() == GameState.OUT_OF_MOVES){
+            turn = turn.opposite();
+            return true;
+        }
         return false;
     }
 
@@ -72,12 +74,6 @@ public class ReversiGame implements ReversiManager {
         return possibleMoves.keySet();
     }
 
-
-    private Collection<Point> getFlipped() {
-        if(undoStack.isEmpty())
-            return new Stack<>();
-        return undoStack.peek().getFlipped();
-    }
     @Override
     public Player getPlayer(Point point) {
         return board.getPlayer(point);
@@ -88,34 +84,58 @@ public class ReversiGame implements ReversiManager {
         return turn;
     }
 
+    @Override
+    public GameState getState() {
+        if(possibleMoves.keySet().isEmpty()) {
+            if(otherPlayerCanMove())
+                return GameState.OUT_OF_MOVES;
+            return GameState.GAME_OVER;
+        }
+        return GameState.RUNNING;
+    }
+
     private boolean isValidMove(Point coordinates) {
         return possibleMoves.containsKey(coordinates);
     }
 
     private void updatePossibleMoves() {
-        possibleMoves.clear();
-        for(Point point : board.findMatchingPoints(Player.NONE))
-            evaluateMove(point);
+        this.possibleMoves.clear();
+        updateMoves(this.board, turn, this.possibleMoves);
     }
 
-    private void evaluateMove(Point point) {
+    private void updateMoves(Board board, Player player, Map<Point, Collection<Point>> moves) {
+        moves.clear();
+        for(Point point : board.findMatchingPoints(Player.NONE))
+            evaluateMove(point, player, moves);
+    }
+
+    private boolean otherPlayerCanMove() {
+        Map<Point, Collection<Point>> nextPossibleMoves= new HashMap<>();
+        for(Point point : board.findMatchingPoints(Player.NONE)){
+            evaluateMove(point, turn.opposite(), nextPossibleMoves);
+        }
+        return !nextPossibleMoves.isEmpty();
+    }
+
+    private void evaluateMove(Point point, Player player, Map<Point, Collection<Point>> moves) {
         for (Direction dir : Direction.values()) {
             Point next = dir.next(point);
             if(board.isValidPosition(next) && board.getPlayer(next) != Player.NONE)
-                findLineRec(point, next, dir);
+                findLineRec(point, next, dir, player, moves);
         }
     }
 
-    private boolean findLineRec(Point original, Point point, Direction dir) {
+    private boolean findLineRec(Point original, Point point, Direction dir,
+                                Player player, Map<Point, Collection<Point>> moves) {
         Point next = dir.next(point);
-        if(board.getPlayer(point) == turn)
+        if(board.getPlayer(point) == player)
             return true;
         if(!board.isValidPosition(point) || board.getPlayer(point) == Player.NONE)
             return false;
-        if(findLineRec(original, dir.next(point), dir)) {
-            if (!possibleMoves.containsKey(original))
-                possibleMoves.put(original, new HashSet<>());
-            possibleMoves.get(original).add(point);
+        if(findLineRec(original, dir.next(point), dir,player, moves)) {
+            if (!moves.containsKey(original))
+                moves.put(original, new HashSet<>());
+            moves.get(original).add(point);
             return true;
         }
         return false;

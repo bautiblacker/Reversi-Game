@@ -3,97 +3,158 @@ package sample;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.scene.input.MouseEvent;
-import model.Player;
-import model.ReversiData;
-import model.ReversiGame;
-import model.ReversiManager;
+import javafx.stage.Stage;
+import model.*;
 import utils.AI;
+import utils.AlertHandler;
 import utils.Point;
 import sample.Space;
 import java.util.*;
 
+import static javafx.application.Platform.exit;
+
 public class Controller {
-    private ObservableMap<Point, Space> observableBoard = FXCollections.observableHashMap();
-    private Collection<Point> flipped;
+    private ObservableMap<Point, Space> observableBoard;
 
     @FXML
     private Text textToShow;
     @FXML
     private BorderPane basePane;
+    @FXML
+    private Text whiteScore = new Text();
+    @FXML
+    private Text blackScore = new Text();
+    @FXML
+    private Text turnsLeft = new Text();
+    @FXML
+    private AnchorPane ap;
 
-    private Map<Point, Space> board;
+
     private GridPane gridPane;
-    private ReversiManager game = new ReversiGame(8, new AI(0, null, 0, false));
-
+    @Deprecated
+    private static final int boardSize = 4;
+    private ReversiManager game = new ReversiGame(boardSize, new AI(0, null, 0, false));
+    private static final int paneSize = 400;
+    private GameState gameState = GameState.RUNNING;
 
 
     public void initialize() {
-        board = new HashMap<>(8*8);
+        observableBoard = FXCollections.observableHashMap();
         gridPane = new GridPane();
+        gridPane.setPrefHeight(paneSize);
+        gridPane.setPrefWidth(paneSize);
         basePane.setCenter(gridPane);
-        restartGame();
+        gridPane.setAlignment(Pos.TOP_CENTER);
+
+        restartGame(boardSize);
+        updateScores();
     }
 
-    @FXML
-    private void restartGame() {
-        for (int i = 0; i < 8; i++){
-            for (int j = 0; j < 8; j++){
+
+    private void restartGame(int size) {
+        observableBoard.clear();
+        gameState = GameState.RUNNING;
+        for (int i = 0; i < size; i++){
+            for (int j = 0; j < size; j++){
                 Point current = new Point(j, i);
                 Space space = new Space();
                 observableBoard.put(current, space);
             }
         }
         observableBoard.forEach((k,v) -> {
-            v.setOnMouseClicked(e ->
-                {
-                setFlipped(game.move(k));
-                if( flipped != null ) {
-                 v.updateImage(game.getPlayer(k));
-                 drawBoard();
-            }
-        });
-            v.updateImage(game.getPlayer(k));
+            v.setOnMouseClicked(e -> {
+                if(game.move(k)) {
+                    v.updateImage(game.getPlayer(k));
+                    gameState = game.getState();
+                    drawBoard();
+                }
+            });
             gridPane.add(v, k.getY(), k.getX());
         });
+        drawBoard();
     }
 
-    public void drawBoard() {
-        if(flipped != null)
-            for(Point point : flipped)
-             observableBoard.get(point).updateImage(game.getPlayer(point));
-    }
-
-    public void setFlipped(Collection<Point> flipped) {
-        this.flipped = flipped;
+    private void drawBoard() {
+        observableBoard.forEach( (k, v) -> v.updateImage(game.getPlayer(k)));
+        //TODO extract possible.png into Space.
+        for(Point point : game.getPossibleMoves())
+            observableBoard.get(point).updateImage("possible.png");
+        updateScores();
+        checkGameState(gameState);
     }
 
 
     @FXML
-    public void handlePassButtonAction(ActionEvent event) { textToShow.setText("Pass Button Pressed"); }
+    public void handleSaveButtonAction(ActionEvent event) { textToShow.setText("Save Button Pressed"); }
 
     @FXML
     public
-    void handleUndoButtonAction(ActionEvent event) {
-        //TODO FIX
+    void handleUndoButtonAction() {
         ReversiData aux = game.undo();
+        gameState = GameState.RUNNING;
         if(aux != null) {
             for (Point point : aux.getFlipped()) {
                 observableBoard.get(point).updateImage(game.getPlayer(point));
             }
             observableBoard.get(aux.getPlaced()).updateImage(game.getPlayer(aux.getPlaced()));
         }
+        gameState = game.getState();
         drawBoard();
     }
 
     @FXML
     protected void handleTreeButtonAction(ActionEvent event) { textToShow.setText("Pass Tree Pressed"); }
 
+    private void checkGameState(GameState gameState){
+        Stage currentStage;
+        if(gameState != GameState.RUNNING) {
+            switch (gameState) {
+                case GAME_OVER:
+                    currentStage = (Stage) ap.getScene().getWindow();
+                    Player winner = (game.getScore(Player.BLACK) > game.getScore(Player.WHITE))
+                            ? Player.BLACK : Player.WHITE;
+                    if (AlertHandler.sendGameOverAlert(currentStage, winner))
+                        restartGame(boardSize);
+                    else
+                        exit();
+                    break;
+                case OUT_OF_MOVES:
+
+                    currentStage = (Stage) ap.getScene().getWindow();
+                    AlertHandler.sendOutOfMovesAlert(currentStage, game.getTurn());
+                    game.pass();
+                    this.gameState = GameState.RUNNING;
+                    drawBoard();
+                    break;
+            }
+        }
+    }
+
+    private void updateScores() {
+        blackScore.setText(String.valueOf(game.getScore(Player.BLACK)));
+        whiteScore.setText(String.valueOf(game.getScore(Player.WHITE)));
+        turnsLeft.setText(String.valueOf(game.getScore(Player.NONE)));
+
+        switch (game.getTurn()) {
+            case WHITE:
+                whiteScore.setUnderline(true);
+                blackScore.setUnderline(false);
+                break;
+            case BLACK:
+                whiteScore.setUnderline(false);
+                blackScore.setUnderline(true);
+                break;
+        }
+    }
 }
