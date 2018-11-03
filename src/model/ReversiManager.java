@@ -12,4 +12,5 @@ public interface ReversiManager extends Serializable {
     Player getPlayer(Point point);
     Collection<Point> getPossibleMoves();
     int getScore(Player current); //Could be implemented directly in front-end.
+    void playsCPU(); // minMax method
 }
