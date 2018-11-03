@@ -1,7 +1,5 @@
 package model;
 
-import javafx.scene.paint.Color;
-
 public enum Player {
 
     NONE,
@@ -12,11 +10,7 @@ public enum Player {
         return this == WHITE ? BLACK : this == BLACK ? WHITE : NONE;
     }
 
-    public Color getColor() {
-        return this == Player.WHITE ? Color.WHITE : Color.BLACK;
-    }
-
-    public String getColorStyle() {
-        return this == Player.WHITE ? "white" : "black";
+    public String getColor() {
+        return this == Player.WHITE ? "WHITE" : "BLACK";
     }
 }
