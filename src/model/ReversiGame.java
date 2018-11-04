@@ -59,6 +59,7 @@ public class ReversiGame implements ReversiManager {
     public boolean pass() {
         if(getState() == GameState.OUT_OF_MOVES){
             turn = turn.opposite();
+            updatePossibleMoves();
             return true;
         }
         return false;

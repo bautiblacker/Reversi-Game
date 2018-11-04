@@ -44,7 +44,7 @@ public class Controller {
     private GridPane gridPane;
     @Deprecated
     private static final int boardSize = 4;
-    private ReversiManager game = new ReversiGame(boardSize, new AI(0, null, 0, false));
+    private ReversiManager game;
     private static final int paneSize = 400;
     private GameState gameState = GameState.RUNNING;
 
@@ -64,6 +64,8 @@ public class Controller {
 
     private void restartGame(int size) {
         observableBoard.clear();
+        gridPane.getChildren().clear();
+        game = new ReversiGame(boardSize, new AI(0, null, 0, false));
         gameState = GameState.RUNNING;
         for (int i = 0; i < size; i++){
             for (int j = 0; j < size; j++){
@@ -101,44 +103,49 @@ public class Controller {
     @FXML
     public
     void handleUndoButtonAction() {
-        ReversiData aux = game.undo();
-        gameState = GameState.RUNNING;
-        if(aux != null) {
-            for (Point point : aux.getFlipped()) {
-                observableBoard.get(point).updateImage(game.getPlayer(point));
-            }
-            observableBoard.get(aux.getPlaced()).updateImage(game.getPlayer(aux.getPlaced()));
+        if (game.undo() != null) {
+            gameState = game.getState();
+            drawBoard();
         }
-        gameState = game.getState();
-        drawBoard();
     }
 
     @FXML
     protected void handleTreeButtonAction(ActionEvent event) { textToShow.setText("Pass Tree Pressed"); }
 
     private void checkGameState(GameState gameState){
-        Stage currentStage;
-        if(gameState != GameState.RUNNING) {
-            switch (gameState) {
-                case GAME_OVER:
-                    currentStage = (Stage) ap.getScene().getWindow();
-                    Player winner = (game.getScore(Player.BLACK) > game.getScore(Player.WHITE))
-                            ? Player.BLACK : Player.WHITE;
-                    if (AlertHandler.sendGameOverAlert(currentStage, winner))
-                        restartGame(boardSize);
-                    else
-                        exit();
-                    break;
+        switch (gameState) {
+            case GAME_OVER:
+                gameOver();
+                break;
                 case OUT_OF_MOVES:
+                    outOfMoves(game.getTurn());
 
-                    currentStage = (Stage) ap.getScene().getWindow();
-                    AlertHandler.sendOutOfMovesAlert(currentStage, game.getTurn());
-                    game.pass();
-                    this.gameState = GameState.RUNNING;
-                    drawBoard();
-                    break;
-            }
         }
+    }
+
+    private void gameOver() {
+        Stage currentStage = (Stage) ap.getScene().getWindow();
+        Player winner = (game.getScore(Player.BLACK) > game.getScore(Player.WHITE))
+                ? Player.BLACK : Player.WHITE;
+        if (AlertHandler.sendGameOverAlert(currentStage, winner))
+            restartGame(boardSize);
+        else
+            exit();
+    }
+
+    private void outOfMoves(Player player) {
+        Stage currentStage = (Stage) ap.getScene().getWindow();
+        boolean ok = AlertHandler.sendOutOfMovesAlert(currentStage, player);
+        if(ok) {
+            handlePassAction();
+        }
+        else
+            handleUndoButtonAction();
+    }
+    private void handlePassAction() {
+        game.pass();
+        gameState = game.getState();
+        drawBoard();
     }
 
     private void updateScores() {
