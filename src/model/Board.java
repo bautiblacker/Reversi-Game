@@ -17,6 +17,11 @@ public class Board {
         board = new HashMap<>(boardSize * boardSize);
         initBoard();
     }
+    public Board(int boardSize, Map<Point, Player> board) {
+        this.boardSize = boardSize;
+        this.board = new HashMap<>();
+        board.forEach((k,v) -> this.board.put(k,v));
+    }
 
     public Player getPlayer(Point point) {
         return board.get(point);
@@ -68,5 +73,9 @@ public class Board {
     }
     public boolean isValidPosition(Point point) {
         return board.containsKey(point);
+    }
+
+    public Board getBoardCopy() {
+        return new Board(boardSize, this.board);
     }
 }

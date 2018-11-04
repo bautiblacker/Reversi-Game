@@ -17,6 +17,9 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Reversi v1.0");
         primaryStage.setScene(new Scene(root, 680, 600));
+        //tipo tp poo
+        //loader.getcontroller.setReversiGame(new ReversiGame() )
+        //getAI(getParameters)
         primaryStage.show();
 
     }

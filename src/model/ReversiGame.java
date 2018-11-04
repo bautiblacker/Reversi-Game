@@ -5,6 +5,7 @@ import utils.Direction;
 import utils.Point;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ReversiGame implements ReversiManager {
     private Board board;
@@ -31,16 +32,11 @@ public class ReversiGame implements ReversiManager {
 
     @Override
     public boolean move(Point point) {
-        if(!isValidMove(point)) {
-            return false;
+        if(movePlayer(point)) {
+            moveCPU();
+            return true;
         }
-        Collection<Point> toFlip = possibleMoves.get(point);
-        board.flip(toFlip);
-        board.setPlayer(point, turn);
-        undoStack.push(new ReversiData(point,toFlip));
-        turn = turn.opposite();
-        updatePossibleMoves();
-        return true;
+        return false;
     }
 
     @Override
@@ -94,7 +90,94 @@ public class ReversiGame implements ReversiManager {
         }
         return GameState.RUNNING;
     }
-
+    private boolean movePlayer(Point point){
+        if(!isValidMove(point)) {
+            return false;
+        }
+        Collection<Point> toFlip = possibleMoves.get(point);
+        board.flip(toFlip);
+        board.setPlayer(point, turn);
+        undoStack.push(new ReversiData(point,toFlip));
+        turn = turn.opposite();
+        updatePossibleMoves();
+        return true;
+    }
+    private void moveCPU() {
+        movePlayer(obtainPosition(minimaxD(board, turn,3, Integer.MIN_VALUE, Integer.MAX_VALUE, true)));
+    }
+    private Point obtainPosition(Board board) {
+        for (Point point : this.board.findMatchingPoints(Player.NONE)){
+            if(board.getPlayer(point) != Player.NONE)
+                return point;
+        }
+        return null;
+    }
+    private Collection<Board> getPossibleBoards(Board board, Player player) {
+        Collection<Map<Point, Collection<Point>>> moves = new HashSet<>();
+        for(Point point :board.findMatchingPoints(Player.NONE)) {
+            Map<Point, Collection<Point>> aux = new HashMap<>();
+            evaluateMove(point, player, aux);
+            moves.add(aux);
+        }
+        return moves.stream()
+                .map(x -> getBoard(board, player, x))
+                .collect(Collectors.toCollection(HashSet::new));
+    }
+    private Board getBoard(Board board, Player player, Map<Point, Collection<Point>> moves) {
+        Board toReturn = board.getBoardCopy();
+        moves.forEach((point, points) -> {
+            toReturn.setPlayer(point, player);
+            toReturn.flip(points);
+        });
+        return toReturn;
+    }
+    private Board minimaxD(Board board, Player player, int depth, int alpha, int beta, boolean isMax) {
+        Collection<Board> possibles = getPossibleBoards(board, player);
+        if(depth == 0 || possibles.size() == 0)
+            return board;
+        if(isMax) {
+            int value = Integer.MIN_VALUE;
+            Board maxBoard = null;
+            for(Board boardP : possibles) {
+                Board nextBoard = minimaxD(boardP, player.opposite(), depth -1, alpha, beta, false);
+                if(Evaluator.evaluate(nextBoard, player.opposite()) > value) {
+                    maxBoard = boardP;
+                    value = Evaluator.evaluate(nextBoard, player);
+                }
+//                alpha = Math.max(alpha, value);
+//                if(beta <= alpha) {
+//                    System.out.println("hubo poda alpha");
+//                    System.out.println("alpha="+alpha);
+//                    System.out.println("beta="+beta);
+//                    System.out.println("value="+value);
+//                    System.out.println("----------------");
+//                    break; //prunes subtree
+//                }
+            }
+            return maxBoard;
+        }
+        else {
+            int value = Integer.MAX_VALUE;
+            Board minBoard = null;
+            for(Board boardP : possibles) {
+                Board nextBoard = minimaxD(boardP, player.opposite(), depth-1, alpha, beta, true);
+                if(Evaluator.evaluate(nextBoard, player.opposite()) < value) {
+                    minBoard = boardP;
+                    value = Evaluator.evaluate(nextBoard, player);
+                }
+//                beta = Math.min(beta, value);
+//                if(beta <= alpha) {
+//                    System.out.println("hubo poda beta");
+//                    System.out.println("alpha="+alpha);
+//                    System.out.println("beta="+beta);
+//                    System.out.println("value="+value);
+//                    System.out.println("----------------");
+//                    break; //prunes subtree
+//                }
+            }
+            return minBoard;
+        }
+    }
     private boolean isValidMove(Point coordinates) {
         return possibleMoves.containsKey(coordinates);
     }
