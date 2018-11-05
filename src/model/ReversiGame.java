@@ -33,7 +33,8 @@ public class ReversiGame implements ReversiManager {
     @Override
     public boolean move(Point point) {
         if(movePlayer(point)) {
-            moveCPU();
+            if(aiOptions.getRole() != 0)
+                moveCPU();
             return true;
         }
         return false;
@@ -103,7 +104,7 @@ public class ReversiGame implements ReversiManager {
         return true;
     }
     private void moveCPU() {
-        movePlayer(obtainPosition(minimaxD(board, turn,3, Integer.MIN_VALUE, Integer.MAX_VALUE, true)));
+        movePlayer(obtainPosition(minimax()));
     }
     private Point obtainPosition(Board board) {
         for (Point point : this.board.findMatchingPoints(Player.NONE)){
@@ -131,7 +132,16 @@ public class ReversiGame implements ReversiManager {
         });
         return toReturn;
     }
-    private Board minimaxD(Board board, Player player, int depth, int alpha, int beta, boolean isMax) {
+    private Board minimax() {
+        if(aiOptions.getType().equals("depth"))
+           return minimaxD(board, turn, aiOptions.getParam(), Integer.MIN_VALUE, Integer.MAX_VALUE, true,
+                    aiOptions.isPrune() );
+        if(aiOptions.getType().equals("time"))
+            return null; //TODO implement minimaxT
+        return null;
+    }
+    private Board minimaxD(Board board, Player player, int depth, int alpha, int beta, boolean isMax,
+                           boolean isPrune) {
         Collection<Board> possibles = getPossibleBoards(board, player);
         if(depth == 0 || possibles.size() == 0)
             return board;
@@ -139,20 +149,18 @@ public class ReversiGame implements ReversiManager {
             int value = Integer.MIN_VALUE;
             Board maxBoard = null;
             for(Board boardP : possibles) {
-                Board nextBoard = minimaxD(boardP, player.opposite(), depth -1, alpha, beta, false);
+                Board nextBoard = minimaxD(boardP, player.opposite(), depth -1, alpha, beta, false,
+                        isPrune);
                 if(Evaluator.evaluate(nextBoard, player.opposite()) > value) {
                     maxBoard = boardP;
                     value = Evaluator.evaluate(nextBoard, player);
                 }
-//                alpha = Math.max(alpha, value);
-//                if(beta <= alpha) {
-//                    System.out.println("hubo poda alpha");
-//                    System.out.println("alpha="+alpha);
-//                    System.out.println("beta="+beta);
-//                    System.out.println("value="+value);
-//                    System.out.println("----------------");
-//                    break; //prunes subtree
-//                }
+                if(isPrune) {
+                    alpha = Math.max(alpha, value);
+                    if (beta <= alpha) {
+                        break; //prunes subtree
+                    }
+                }
             }
             return maxBoard;
         }
@@ -160,20 +168,17 @@ public class ReversiGame implements ReversiManager {
             int value = Integer.MAX_VALUE;
             Board minBoard = null;
             for(Board boardP : possibles) {
-                Board nextBoard = minimaxD(boardP, player.opposite(), depth-1, alpha, beta, true);
+                Board nextBoard = minimaxD(boardP, player.opposite(), depth-1, alpha, beta, true, isPrune);
                 if(Evaluator.evaluate(nextBoard, player.opposite()) < value) {
                     minBoard = boardP;
                     value = Evaluator.evaluate(nextBoard, player);
                 }
-//                beta = Math.min(beta, value);
-//                if(beta <= alpha) {
-//                    System.out.println("hubo poda beta");
-//                    System.out.println("alpha="+alpha);
-//                    System.out.println("beta="+beta);
-//                    System.out.println("value="+value);
-//                    System.out.println("----------------");
-//                    break; //prunes subtree
-//                }
+                if(isPrune) {
+                    beta = Math.min(beta, value);
+                    if(beta <= alpha) {
+                        break; //prunes subtree
+                    }
+                }
             }
             return minBoard;
         }
