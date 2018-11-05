@@ -12,4 +12,20 @@ public class AI {
         this.param = param;
         this.prune = prune;
     }
+
+    public int getRole() {
+        return role;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public int getParam() {
+        return param;
+    }
+
+    public boolean isPrune() {
+        return prune;
+    }
 }

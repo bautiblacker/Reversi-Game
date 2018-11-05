@@ -101,8 +101,7 @@ public class Controller {
     public void handleSaveButtonAction(ActionEvent event) { textToShow.setText("Save Button Pressed"); }
 
     @FXML
-    public
-    void handleUndoButtonAction() {
+    public void handleUndoButtonAction() {
         if (game.undo() != null) {
             gameState = game.getState();
             drawBoard();
@@ -125,9 +124,16 @@ public class Controller {
 
     private void gameOver() {
         Stage currentStage = (Stage) ap.getScene().getWindow();
-        Player winner = (game.getScore(Player.BLACK) > game.getScore(Player.WHITE))
-                ? Player.BLACK : Player.WHITE;
-        if (AlertHandler.sendGameOverAlert(currentStage, winner))
+        int black = Integer.valueOf(blackScore.getText());
+        int white = Integer.valueOf(whiteScore.getText());
+        boolean restart;
+        if(black == white)
+            restart = AlertHandler.sendGameOverAlert(currentStage, Player.NONE);
+        else {
+            Player winner = (black > white) ? Player.BLACK : Player.WHITE;
+            restart = AlertHandler.sendGameOverAlert(currentStage, winner);
+        }
+        if(restart)
             restartGame(boardSize);
         else
             exit();

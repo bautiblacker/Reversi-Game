@@ -12,7 +12,11 @@ import java.util.Optional;
 public class AlertHandler {
 
     public static boolean sendGameOverAlert(Stage stage, Player player) {
-        String message = player + " won!";
+        String message;
+        if(player == Player.NONE)
+            message = "It's a draw!";
+        else
+            message = player + " won!";
         String okText = "Restart";
         String notOkText = "Exit";
         return sendAlert(stage, player, message, okText, notOkText);
