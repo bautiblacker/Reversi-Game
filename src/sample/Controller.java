@@ -43,7 +43,7 @@ public class Controller {
 
     private GridPane gridPane;
     @Deprecated
-    private static final int boardSize = 4;
+    private static final int boardSize = 10;
     private ReversiManager game;
     private static final int paneSize = 400;
     private GameState gameState = GameState.RUNNING;
