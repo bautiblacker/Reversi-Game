@@ -1,26 +1,25 @@
-package sample;
+package view;
 
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
-import javafx.scene.image.Image;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
-import model.*;
+import javafx.util.Duration;
+import logic.*;
+import logic.gameObjects.GameState;
+import logic.gameObjects.Player;
 import utils.AI;
 import utils.AlertHandler;
 import utils.Point;
-import sample.Space;
-import java.util.*;
 
 import static javafx.application.Platform.exit;
 
@@ -43,10 +42,12 @@ public class Controller {
 
     private GridPane gridPane;
     @Deprecated
-    private static final int boardSize =10;
+    private static final int boardSize =4;
     private ReversiManager game;
     private static final int paneSize = 400;
     private GameState gameState = GameState.RUNNING;
+    private Player human = Player.BLACK;
+    private Player cpu = human.opposite();
 
 
     public void initialize() {
@@ -76,7 +77,8 @@ public class Controller {
         }
         observableBoard.forEach((k,v) -> {
             v.setOnMouseClicked(e -> {
-                if(game.move(k)) {
+                if(game.getTurn() == human)
+                if(game.movePlayer(k)) {
                     v.updateImage(game.getPlayer(k));
                     gameState = game.getState();
                     drawBoard();
@@ -98,7 +100,7 @@ public class Controller {
 
 
     @FXML
-    public void handleSaveButtonAction(ActionEvent event) { textToShow.setText("Save Button Pressed"); }
+    public void handleSaveButtonAction() {}
 
     @FXML
     public void handleUndoButtonAction() {
@@ -109,7 +111,16 @@ public class Controller {
     }
 
     @FXML
-    protected void handleTreeButtonAction(ActionEvent event) { textToShow.setText("Pass Tree Pressed"); }
+    protected void handleTreeButtonAction() { }
+
+    @FXML
+    public void handleAIMove() {
+        if(game.getTurn() == cpu) {
+            Point moved = game.moveCPU();
+            gameState = game.getState();
+            drawBoard();
+        }
+    }
 
     private void checkGameState(GameState gameState){
         switch (gameState) {

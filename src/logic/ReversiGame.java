@@ -1,10 +1,15 @@
-package model;
+package logic;
 
+import logic.ai.BoardChange;
+import logic.ai.Evaluator;
+import logic.gameObjects.Board;
+import logic.gameObjects.GameState;
+import logic.gameObjects.Player;
+import logic.utils.Searcher;
 import utils.AI;
 import utils.Point;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ReversiGame implements ReversiManager {
     private Board board;
@@ -28,14 +33,29 @@ public class ReversiGame implements ReversiManager {
         this.aiOptions = newAi;
     }
 
+    private void move(Point point) {
+        Collection<Point> toFlip = possibleMovesMap.get(point);
+        board = makeBoardMove(board, turn, point, toFlip);
+        undoStack.push(new ReversiData(point,toFlip));
+        turn = turn.opposite();
+        possibleMovesMap = Searcher.findPossibleMoves(board, turn);
+    }
     @Override
-    public boolean move(Point point) {
-        if(movePlayer(point)) {
-            if(aiOptions.getRole() != 0)
-                moveCPU();
-            return true;
+    public boolean movePlayer(Point point){
+        if(!isValidMove(point)) {
+            return false;
         }
-        return false;
+        move(point);
+        return true;
+    }
+
+    @Override
+    public Point moveCPU() {
+        BoardChange minimax = minimax();
+        if(minimax == null)
+            return null;
+        move(minimax.getPlace());
+        return minimax.getPlace();
     }
 
     @Override
@@ -89,30 +109,7 @@ public class ReversiGame implements ReversiManager {
         return GameState.RUNNING;
     }
 
-    private boolean movePlayer(Point point){
-        if(!isValidMove(point)) {
-            return false;
-        }
-        Collection<Point> toFlip = possibleMovesMap.get(point);
-       board = makeBoardMove(board, turn, point, toFlip);
-        undoStack.push(new ReversiData(point,toFlip));
-        turn = turn.opposite();
-        possibleMovesMap = Searcher.findPossibleMoves(board, turn);
-        return true;
-    }
-    private void moveCPU() {
-        movePlayer(minimax().getPlace()); //si obtainPosition tira una posicion invalida se caga el minimax.
-    }
 
-//    private Collection<BoardChange> getPossibleBoardChanges(Board board, Player player) {
-//        Collection<BoardChange> boardChanges = new HashSet<>();
-//        Board boardCopy = board.getBoardCopy();
-//        Searcher.findPossibleMoves(board, player).forEach((point, points) -> {
-//            makeBoardMove(boardCopy, player, point, points);
-//            boardChanges.add(new BoardChange(boardCopy, point, points));
-//        });
-//        return boardChanges;
-//    }
     private Collection<BoardChange> getPossibleBoardChanges(Board board, Player player) {
         Collection<BoardChange> boardChanges = new HashSet<>();
         Searcher.findPossibleMoves(board, player).forEach((point, points) -> {
@@ -127,6 +124,7 @@ public class ReversiGame implements ReversiManager {
            return minimaxD(toEval, turn, aiOptions.getParam(),
                    Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune() );
         if(aiOptions.getType().equals("time")){
+            //Not working correctly
             long start = System.currentTimeMillis();
             long timeLimit = start + aiOptions.getParam()*1000;
             int depth = 1;
@@ -134,15 +132,15 @@ public class ReversiGame implements ReversiManager {
                     Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune() );
 
             while(System.currentTimeMillis() < timeLimit ) {
-                timeBoard = minimaxT(new BoardChange(board, null, null), turn, depth++,
-                        Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune(), timeLimit );
+                timeBoard = minimaxD(new BoardChange(board, null, null), turn, depth++,
+                        Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune());
 
             }
             return timeBoard;
         }
         return null;
     }
-    @SuppressWarnings("Duplicates")
+
     private BoardChange minimaxD(BoardChange boardChange, Player player, int depth, int alpha, int beta, boolean isMax,
                            boolean isPrune) {
         Collection<BoardChange> possibles = getPossibleBoardChanges(boardChange.getBoard(), player);
@@ -183,49 +181,6 @@ public class ReversiGame implements ReversiManager {
                     value = auxValue;
                 }
                 undoBoardMove(nextBoard, player.opposite(), possible.getPlace(), possible.getFlip());
-                if(isPrune) {
-                    beta = Math.min(beta, value);
-                    if(beta <= alpha) {
-                        break; //prunes subtree
-                    }
-                }
-            }
-            return minBoardChange;
-        }
-    }
-    private BoardChange minimaxT(BoardChange boardChange, Player player, int depth, int alpha, int beta, boolean isMax,
-                                 boolean isPrune, long timeLimit) {
-        Collection<BoardChange> possibles = getPossibleBoardChanges(board, player);
-        if(depth == 0 || System.currentTimeMillis() > timeLimit || possibles.size() == 0)
-            return boardChange;
-        if(isMax) {
-            int value = Integer.MIN_VALUE;
-            BoardChange maxBoardChange = null;
-            for(BoardChange possible : possibles) {
-                Board nextBoard = minimaxD(possible, player.opposite(), depth -1, alpha, beta, false,
-                        isPrune).getBoard();
-                if(Evaluator.evaluate(nextBoard, player.opposite()) > value) {
-                    maxBoardChange = possible;
-                    value = Evaluator.evaluate(nextBoard, player);
-                }
-                if(isPrune) {
-                    alpha = Math.max(alpha, value);
-                    if (beta <= alpha) {
-                        break; //prunes subtree
-                    }
-                }
-            }
-            return maxBoardChange;
-        }
-        else {
-            int value = Integer.MAX_VALUE;
-            BoardChange minBoardChange = null;
-            for(BoardChange possible : possibles) {
-                Board nextBoard = minimaxD(possible, player.opposite(), depth-1, alpha, beta, true, isPrune).getBoard();
-                if(Evaluator.evaluate(nextBoard, player.opposite()) < value) {
-                    minBoardChange = possible;
-                    value = Evaluator.evaluate(nextBoard, player);
-                }
                 if(isPrune) {
                     beta = Math.min(beta, value);
                     if(beta <= alpha) {
