@@ -43,7 +43,7 @@ public class Controller {
 
     private GridPane gridPane;
     @Deprecated
-    private static final int boardSize = 10;
+    private static final int boardSize =10;
     private ReversiManager game;
     private static final int paneSize = 400;
     private GameState gameState = GameState.RUNNING;
@@ -65,7 +65,7 @@ public class Controller {
     private void restartGame(int size) {
         observableBoard.clear();
         gridPane.getChildren().clear();
-        game = new ReversiGame(boardSize, new AI(0, null, 0, false));
+        game = new ReversiGame(boardSize, new AI(1, "depth", 5, true));
         gameState = GameState.RUNNING;
         for (int i = 0; i < size; i++){
             for (int j = 0; j < size; j++){

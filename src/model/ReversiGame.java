@@ -1,7 +1,6 @@
 package model;
 
 import utils.AI;
-import utils.Direction;
 import utils.Point;
 
 import java.util.*;
@@ -11,22 +10,21 @@ public class ReversiGame implements ReversiManager {
     private Board board;
     private Player turn;
     private Stack<ReversiData> undoStack;
-    private Map<Point, Collection<Point>> possibleMoves;
+    private Map<Point, Collection<Point>> possibleMovesMap;
     private AI aiOptions;
 
     public ReversiGame(int boardSize, AI ai) {
         turn = Player.BLACK;
         undoStack = new Stack<>();
-        possibleMoves = new HashMap<>();
         board = new Board(boardSize);
         aiOptions = ai;
-        updatePossibleMoves();
+        possibleMovesMap = Searcher.findPossibleMoves(this.board, this.turn);
     }
     public ReversiGame(ReversiGame old, AI newAi) {
         this.board = old.board;
         this.turn = old.turn;
         this.undoStack = old.undoStack;
-        this.possibleMoves = old.possibleMoves;
+        this.possibleMovesMap = old.possibleMovesMap;
         this.aiOptions = newAi;
     }
 
@@ -45,10 +43,9 @@ public class ReversiGame implements ReversiManager {
         if(undoStack.isEmpty())
             return null;
         ReversiData aux = undoStack.pop();
-        board.setPlayer(aux.getPlaced(), Player.NONE);
-        board.flip(aux.getFlipped());
+        board = undoBoardMove(board, turn, aux.getPlaced(), aux.getFlipped());
         turn = turn.opposite();
-        updatePossibleMoves();
+        possibleMovesMap = Searcher.findPossibleMoves(board, turn);
         return aux;
     }
 
@@ -56,7 +53,7 @@ public class ReversiGame implements ReversiManager {
     public boolean pass() {
         if(getState() == GameState.OUT_OF_MOVES){
             turn = turn.opposite();
-            updatePossibleMoves();
+            possibleMovesMap = Searcher.findPossibleMoves(board, turn);
             return true;
         }
         return false;
@@ -69,7 +66,7 @@ public class ReversiGame implements ReversiManager {
 
     @Override
     public Collection<Point> getPossibleMoves() {
-        return possibleMoves.keySet();
+        return possibleMovesMap.keySet();
     }
 
     @Override
@@ -84,75 +81,131 @@ public class ReversiGame implements ReversiManager {
 
     @Override
     public GameState getState() {
-        if(possibleMoves.keySet().isEmpty()) {
+        if(getPossibleMoves().isEmpty()) {
             if(otherPlayerCanMove())
                 return GameState.OUT_OF_MOVES;
             return GameState.GAME_OVER;
         }
         return GameState.RUNNING;
     }
+
     private boolean movePlayer(Point point){
         if(!isValidMove(point)) {
             return false;
         }
-        Collection<Point> toFlip = possibleMoves.get(point);
-        board.flip(toFlip);
-        board.setPlayer(point, turn);
+        Collection<Point> toFlip = possibleMovesMap.get(point);
+       board = makeBoardMove(board, turn, point, toFlip);
         undoStack.push(new ReversiData(point,toFlip));
         turn = turn.opposite();
-        updatePossibleMoves();
+        possibleMovesMap = Searcher.findPossibleMoves(board, turn);
         return true;
     }
     private void moveCPU() {
-        movePlayer(obtainPosition(minimax()));
+        movePlayer(minimax().getPlace()); //si obtainPosition tira una posicion invalida se caga el minimax.
     }
-    private Point obtainPosition(Board board) {
-        for (Point point : this.board.findMatchingPoints(Player.NONE)){
-            if(board.getPlayer(point) != Player.NONE)
-                return point;
-        }
-        return null;
-    }
-    private Collection<Board> getPossibleBoards(Board board, Player player) {
-        Collection<Map<Point, Collection<Point>>> moves = new HashSet<>();
-        for(Point point :board.findMatchingPoints(Player.NONE)) {
-            Map<Point, Collection<Point>> aux = new HashMap<>();
-            evaluateMove(point, player, aux);
-            moves.add(aux);
-        }
-        return moves.stream()
-                .map(x -> getBoard(board, player, x))
-                .collect(Collectors.toCollection(HashSet::new));
-    }
-    private Board getBoard(Board board, Player player, Map<Point, Collection<Point>> moves) {
-        Board toReturn = board.getBoardCopy();
-        moves.forEach((point, points) -> {
-            toReturn.setPlayer(point, player);
-            toReturn.flip(points);
+
+//    private Collection<BoardChange> getPossibleBoardChanges(Board board, Player player) {
+//        Collection<BoardChange> boardChanges = new HashSet<>();
+//        Board boardCopy = board.getBoardCopy();
+//        Searcher.findPossibleMoves(board, player).forEach((point, points) -> {
+//            makeBoardMove(boardCopy, player, point, points);
+//            boardChanges.add(new BoardChange(boardCopy, point, points));
+//        });
+//        return boardChanges;
+//    }
+    private Collection<BoardChange> getPossibleBoardChanges(Board board, Player player) {
+        Collection<BoardChange> boardChanges = new HashSet<>();
+        Searcher.findPossibleMoves(board, player).forEach((point, points) -> {
+            boardChanges.add(new BoardChange(board, point, points));
         });
-        return toReturn;
+        return boardChanges;
     }
-    private Board minimax() {
+
+    private BoardChange minimax() {
+        BoardChange toEval = new BoardChange(board, null, null);
         if(aiOptions.getType().equals("depth"))
-           return minimaxD(board, turn, aiOptions.getParam(), Integer.MIN_VALUE, Integer.MAX_VALUE, true,
-                    aiOptions.isPrune() );
-        if(aiOptions.getType().equals("time"))
-            return null; //TODO implement minimaxT
+           return minimaxD(toEval, turn, aiOptions.getParam(),
+                   Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune() );
+        if(aiOptions.getType().equals("time")){
+            long start = System.currentTimeMillis();
+            long timeLimit = start + aiOptions.getParam()*1000;
+            int depth = 1;
+            BoardChange timeBoard = minimaxD(toEval, turn, depth,
+                    Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune() );
+
+            while(System.currentTimeMillis() < timeLimit ) {
+                timeBoard = minimaxT(new BoardChange(board, null, null), turn, depth++,
+                        Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune(), timeLimit );
+
+            }
+            return timeBoard;
+        }
         return null;
     }
-    private Board minimaxD(Board board, Player player, int depth, int alpha, int beta, boolean isMax,
+    @SuppressWarnings("Duplicates")
+    private BoardChange minimaxD(BoardChange boardChange, Player player, int depth, int alpha, int beta, boolean isMax,
                            boolean isPrune) {
-        Collection<Board> possibles = getPossibleBoards(board, player);
-        if(depth == 0 || possibles.size() == 0)
-            return board;
+        Collection<BoardChange> possibles = getPossibleBoardChanges(boardChange.getBoard(), player);
+        if(depth == 0 || possibles.size() == 0) {
+            return boardChange;
+        }
         if(isMax) {
             int value = Integer.MIN_VALUE;
-            Board maxBoard = null;
-            for(Board boardP : possibles) {
-                Board nextBoard = minimaxD(boardP, player.opposite(), depth -1, alpha, beta, false,
-                        isPrune);
+            BoardChange maxBoardChange = null;
+            for(BoardChange possible : possibles) {
+                makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
+                Board nextBoard = minimaxD(possible, player.opposite(), depth -1, alpha, beta, false,
+                        isPrune).getBoard();
+                int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
+                if( auxValue > value) {
+                    maxBoardChange = possible;
+                    value = auxValue;
+                }
+                undoBoardMove(nextBoard, player.opposite(), possible.getPlace(), possible.getFlip());
+                if(isPrune) {
+                    alpha = Math.max(alpha, value);
+                    if (beta <= alpha) {
+                        break; //prunes subtree
+                    }
+                }
+            }
+            return maxBoardChange;
+        }
+        else {
+            int value = Integer.MAX_VALUE;
+            BoardChange minBoardChange = null;
+            for(BoardChange possible : possibles) {
+                makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
+                Board nextBoard = minimaxD(possible, player.opposite(), depth-1, alpha, beta, true, isPrune).getBoard();
+                int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
+                if( auxValue < value) {
+                    minBoardChange = possible;
+                    value = auxValue;
+                }
+                undoBoardMove(nextBoard, player.opposite(), possible.getPlace(), possible.getFlip());
+                if(isPrune) {
+                    beta = Math.min(beta, value);
+                    if(beta <= alpha) {
+                        break; //prunes subtree
+                    }
+                }
+            }
+            return minBoardChange;
+        }
+    }
+    private BoardChange minimaxT(BoardChange boardChange, Player player, int depth, int alpha, int beta, boolean isMax,
+                                 boolean isPrune, long timeLimit) {
+        Collection<BoardChange> possibles = getPossibleBoardChanges(board, player);
+        if(depth == 0 || System.currentTimeMillis() > timeLimit || possibles.size() == 0)
+            return boardChange;
+        if(isMax) {
+            int value = Integer.MIN_VALUE;
+            BoardChange maxBoardChange = null;
+            for(BoardChange possible : possibles) {
+                Board nextBoard = minimaxD(possible, player.opposite(), depth -1, alpha, beta, false,
+                        isPrune).getBoard();
                 if(Evaluator.evaluate(nextBoard, player.opposite()) > value) {
-                    maxBoard = boardP;
+                    maxBoardChange = possible;
                     value = Evaluator.evaluate(nextBoard, player);
                 }
                 if(isPrune) {
@@ -162,15 +215,15 @@ public class ReversiGame implements ReversiManager {
                     }
                 }
             }
-            return maxBoard;
+            return maxBoardChange;
         }
         else {
             int value = Integer.MAX_VALUE;
-            Board minBoard = null;
-            for(Board boardP : possibles) {
-                Board nextBoard = minimaxD(boardP, player.opposite(), depth-1, alpha, beta, true, isPrune);
+            BoardChange minBoardChange = null;
+            for(BoardChange possible : possibles) {
+                Board nextBoard = minimaxD(possible, player.opposite(), depth-1, alpha, beta, true, isPrune).getBoard();
                 if(Evaluator.evaluate(nextBoard, player.opposite()) < value) {
-                    minBoard = boardP;
+                    minBoardChange = possible;
                     value = Evaluator.evaluate(nextBoard, player);
                 }
                 if(isPrune) {
@@ -180,53 +233,25 @@ public class ReversiGame implements ReversiManager {
                     }
                 }
             }
-            return minBoard;
+            return minBoardChange;
         }
     }
+
+    private Board makeBoardMove(Board board, Player player, Point toPlace, Collection<Point> toFlip ) {
+        board.setPlayer(toPlace, player);
+        board.flip(toFlip);
+        return board;
+    }
+    private Board undoBoardMove(Board board, Player player, Point toRemove, Collection<Point> toFlip) {
+        board.setPlayer(toRemove, Player.NONE);
+        board.flip(toFlip);
+        return board;
+    }
     private boolean isValidMove(Point coordinates) {
-        return possibleMoves.containsKey(coordinates);
-    }
-
-    private void updatePossibleMoves() {
-        this.possibleMoves.clear();
-        updateMoves(this.board, turn, this.possibleMoves);
-    }
-
-    private void updateMoves(Board board, Player player, Map<Point, Collection<Point>> moves) {
-        moves.clear();
-        for(Point point : board.findMatchingPoints(Player.NONE))
-            evaluateMove(point, player, moves);
+        return possibleMovesMap.containsKey(coordinates);
     }
 
     private boolean otherPlayerCanMove() {
-        Map<Point, Collection<Point>> nextPossibleMoves= new HashMap<>();
-        for(Point point : board.findMatchingPoints(Player.NONE)){
-            evaluateMove(point, turn.opposite(), nextPossibleMoves);
-        }
-        return !nextPossibleMoves.isEmpty();
-    }
-
-    private void evaluateMove(Point point, Player player, Map<Point, Collection<Point>> moves) {
-        for (Direction dir : Direction.values()) {
-            Point next = dir.next(point);
-            if(board.isValidPosition(next) && board.getPlayer(next) != Player.NONE)
-                findLineRec(point, next, dir, player, moves);
-        }
-    }
-
-    private boolean findLineRec(Point original, Point point, Direction dir,
-                                Player player, Map<Point, Collection<Point>> moves) {
-        Point next = dir.next(point);
-        if(board.getPlayer(point) == player)
-            return true;
-        if(!board.isValidPosition(point) || board.getPlayer(point) == Player.NONE)
-            return false;
-        if(findLineRec(original, dir.next(point), dir,player, moves)) {
-            if (!moves.containsKey(original))
-                moves.put(original, new HashSet<>());
-            moves.get(original).add(point);
-            return true;
-        }
-        return false;
+        return !Searcher.findPossibleMoves(board, turn.opposite()).isEmpty();
     }
 }
