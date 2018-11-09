@@ -33,4 +33,9 @@ public class Point {
 
         return Objects.hash(getX(), getY());
     }
+
+    @Override
+    public String toString() {
+        return "{" + getX()+ ", " + getY()+"}";
+    }
 }

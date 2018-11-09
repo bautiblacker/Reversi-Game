@@ -10,7 +10,7 @@ public class BoardChange {
     private Point place; //Point to place
     private Collection<Point> flip; //Points to flip
 
-    public BoardChange(Board board, Point place, Collection<Point> flip) {
+    public BoardChange(Board board, Point place, Collection<Point> flip, Dot dot) {
         this.board = board;
         this.place = place;
         this.flip = flip;

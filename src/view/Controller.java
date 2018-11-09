@@ -66,7 +66,7 @@ public class Controller {
     private void restartGame(int size) {
         observableBoard.clear();
         gridPane.getChildren().clear();
-        game = new ReversiGame(boardSize, new AI(1, "depth", 5, true));
+        game = new ReversiGame(boardSize, new AI(1, "depth", 3, true));
         gameState = GameState.RUNNING;
         for (int i = 0; i < size; i++){
             for (int j = 0; j < size; j++){
