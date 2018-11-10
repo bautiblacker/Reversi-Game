@@ -1,6 +1,7 @@
 package logic;
 
 import logic.ai.BoardChange;
+import logic.ai.BoardChangeData;
 import logic.ai.Dot;
 import logic.ai.Evaluator;
 import logic.gameObjects.Board;
@@ -51,12 +52,12 @@ public class ReversiGame implements ReversiManager {
     }
 
     @Override
-    public Point moveCPU() {
-        BoardChange minimax = minimax();
+    public Dot moveCPU() {
+        BoardChangeData minimax = minimax();
         if(minimax == null)
             return null;
-        move(minimax.getPlace());
-        return minimax.getPlace();
+        move(minimax.getBoardChange().getPlace());
+        return minimax.getDot();
     }
 
     @Override
@@ -120,7 +121,7 @@ public class ReversiGame implements ReversiManager {
         return boardChanges;
     }
 
-    private BoardChange minimax() {
+    private BoardChangeData minimax() {
         Dot.resetCounter();
         Dot dot = new Dot(null, 0);
         BoardChange toEval = new BoardChange(board, null, null, dot);
@@ -128,7 +129,7 @@ public class ReversiGame implements ReversiManager {
             toEval = minimaxD(toEval, turn, aiOptions.getParam(),
                     Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune(), dot);
             System.out.println(Dot.tree(dot));
-            return toEval;
+            return new BoardChangeData(toEval, dot);
         }
 //        if(aiOptions.getType().equals("time")){
 //            //Not working correctly

@@ -2,9 +2,10 @@ package logic;
 
 import utils.Point;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public class ReversiData {
+public class ReversiData implements Serializable {
     private Point placed;
     private Collection<Point> flipped;
 

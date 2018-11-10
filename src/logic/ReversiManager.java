@@ -1,5 +1,6 @@
 package logic;
 
+import logic.ai.Dot;
 import logic.gameObjects.GameState;
 import logic.gameObjects.Player;
 import utils.Point;
@@ -9,7 +10,7 @@ import java.util.Collection;
 
 public interface ReversiManager extends Serializable {
     boolean movePlayer(Point coordinates);
-    Point moveCPU();
+    Dot moveCPU();
     ReversiData undo();
     boolean pass();
     Player getPlayer(Point point);
