@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import logic.ReversiGame;
 import logic.ReversiManager;
+import logic.ai.ScoreCornerWeightEval;
 import logic.gameObjects.Player;
 import utils.AI;
 import utils.AlertHandler;
@@ -27,11 +28,10 @@ import static java.lang.System.exit;
 public class Main extends Application {
 
     private ReversiManager game;
-    private Player human;
-    private Player cpu;
     private AI aiOptions;
     private int boardSize;
     private Stage primarySage;
+    private boolean loadedGame = false;
     @Override
     public void start(Stage primaryStage) throws Exception{
         try {
@@ -58,17 +58,17 @@ public class Main extends Application {
                 map.put(key.substring(1), value);
             }
             updateArgs(map);
-            human = (aiOptions.getRole() == 2) ? Player.BLACK : Player.WHITE;
-            cpu = human.opposite();
+            Player human = (aiOptions.getRole() == 2) ? game.getTurn() : game.getTurn().opposite();
+            Player cpu = human.opposite();
             gameController.setGame(game);
             gameController.setHuman(human);
             gameController.setCpu(cpu);
             gameController.setBoardSize(boardSize);
-            System.out.println("En el main main");
-            System.out.println(aiOptions);
-            System.out.println("-----------");
             gameController.setAiOptions(aiOptions);
-            gameController.start();
+            if(loadedGame)
+                gameController.loadGame();
+            else
+                gameController.startGame();
 
 
 
@@ -83,17 +83,13 @@ public class Main extends Application {
     }
     private void updateArgs(Map<String, String> args) {
         ReversiGame oldGame = null;
-        if(args.containsKey("load")) {
-            return;
-        }
+
         if(!Arrays.asList("size", "ai", "mode", "param", "prune", "load").containsAll(args.keySet()))
             throw new IllegalArgumentException("Invalid argument(s)");
         aiOptions = new AI();
         for(String arg : args.keySet()) {
 
             String value = args.get(arg);
-            System.out.println(arg);
-            System.out.println(value);
             switch (arg) {
                 case "size":
                     if(args.containsKey("load"))
@@ -115,11 +111,7 @@ public class Main extends Application {
                 case "mode":
                     if(!Arrays.asList("time", "depth").contains(value))
                         throw new IllegalArgumentException("Invalid AI mode");
-                    System.out.println("antes del set type");
-                    System.out.println(aiOptions);
                     aiOptions.setType(value);
-                    System.out.println("despues ");
-                    System.out.println(aiOptions);
                     break;
                 case "param":
                     int param;
@@ -150,6 +142,7 @@ public class Main extends Application {
             }
         }
         if(args.containsKey("load") && oldGame != null) {
+            loadedGame = true;
             game = new ReversiGame(oldGame, aiOptions);
             return;
         }

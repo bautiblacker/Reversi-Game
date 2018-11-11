@@ -45,5 +45,8 @@
          </font>
       </Text>
       <Button layoutX="514.0" layoutY="344.0" mnemonicParsing="false" onAction="#handleAIMove" text="MOVE AI" />
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+      <Text fx:id="blackText" layoutX="150.0" layoutY="479.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+      <Text fx:id="whiteText" layoutX="280.0" layoutY="479.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
    </children>
 </AnchorPane>

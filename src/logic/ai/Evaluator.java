@@ -5,8 +5,7 @@ import logic.gameObjects.Player;
 
 public class Evaluator {
     public static int evaluate(Board board, Player player) {
-       return board.getCount(player);
-        //return ScoreCornerWeightEval.getInstance(board.getSize()).evaluate(board, player);
+        return ScoreCornerWeightEval.getInstance(board.getSize()).evaluate(board, player);
     }
 
 }

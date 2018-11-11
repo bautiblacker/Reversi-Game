@@ -18,4 +18,5 @@ public interface ReversiManager extends Serializable {
     GameState getState();
     Collection<Point> getPossibleMoves();
     int getScore(Player current);
+    int getBoardSize();
 }

@@ -1,12 +1,9 @@
 package view;
 
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Pos;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -14,7 +11,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import logic.*;
 import logic.ai.Dot;
 import logic.gameObjects.GameState;
@@ -29,29 +25,84 @@ import java.nio.file.Paths;
 import static javafx.application.Platform.exit;
 
 public class Controller {
-    private ObservableMap<Point, Space> observableBoard;
     @FXML
     private BorderPane basePane;
     @FXML
     private Text whiteScore = new Text();
     @FXML
+    private Text whiteText = new Text();
+    @FXML
     private Text blackScore = new Text();
+    @FXML
+    private Text blackText = new Text();
     @FXML
     private Text turnsLeft = new Text();
     @FXML
     private AnchorPane ap;
+
+    private ObservableMap<Point, Space> observableBoard;
     private static final int paneSize = 400;
     private GridPane gridPane;
-
 
     private Dot aiTree;
     private GameState gameState = GameState.RUNNING;
     private ReversiManager game;
-    private Player human;// = Player.BLACK;
-    private Player cpu;// = human.opposite();
-    private AI aiOptions;// = new AI(1, "depth", 3, true);
+    private Player human;
+    private Player cpu;
+    private AI aiOptions;
     private int boardSize;
 
+    @FXML
+    public void handleSaveButtonAction() {
+        Stage currentStage = (Stage) ap.getScene().getWindow();
+        File selectedFile = getFileChooser().showSaveDialog(new Stage());
+        if(selectedFile != null) {
+            try {
+                saveData(selectedFile);
+                AlertHandler.sendConfirmationAlert(currentStage,
+                        "Game file successfully saved");
+            }catch (Exception ex) {
+                ex.printStackTrace();
+                AlertHandler.sendErrorAlert(currentStage, "Error saving file");
+            }
+        }
+    }
+
+    @FXML
+    public void handleUndoButtonAction() {
+        if (game.undo() != null) {
+            gameState = game.getState();
+            drawBoard();
+        }
+    }
+
+    @FXML
+    public void handleTreeButtonAction() {
+        Stage currentStage = (Stage) ap.getScene().getWindow();
+        if(aiTree == null)
+            AlertHandler.sendInformationConfirmation(currentStage, "Warning", "No data to save.");
+        File selectedFile = getFileChooser().showSaveDialog(new Stage());
+        if(selectedFile != null) {
+            try {
+                PrintWriter out = new PrintWriter(selectedFile);
+                out.println(Dot.tree(aiTree));
+                out.close();
+                AlertHandler.sendConfirmationAlert(currentStage,
+                        "Dot file successfully saved");
+            }catch (Exception ex) {
+                AlertHandler.sendErrorAlert(currentStage, "Error saving file");
+            }
+        }
+    }
+
+    @FXML
+    public void handleAIMove() {
+        if(game.getTurn() == cpu) {
+            aiTree = game.moveCPU();
+            gameState = game.getState();
+            drawBoard();
+        }
+    }
 
     public void setGame(ReversiManager game) {
         this.game = game;
@@ -73,48 +124,55 @@ public class Controller {
         this.boardSize = boardSize;
     }
 
-    public void initialize() {
+    public void startGame() {
+        start();
+        observableBoard.clear();
+        gridPane.getChildren().clear();
+        game = new ReversiGame(boardSize, aiOptions);
+        gameState = GameState.RUNNING;
+        buildObservableMap(game.getBoardSize());
+        setButtonsAction();
+        drawBoard();
+        updateScores();
+        setPlayerText();
+
     }
 
-    public void start() {
+    public void loadGame() {
+        start();
+        observableBoard.clear();
+        gridPane.getChildren().clear();
+        gameState = game.getState();
+        boardSize = game.getBoardSize();
+        buildObservableMap(boardSize);
+        setButtonsAction();
+        drawBoard();
+        updateScores();
+        setPlayerText();
+    }
+
+    private void setPlayerText() {
+        if(aiOptions.getRole() == 0){
+            blackText.setText("human");
+            whiteText.setText("human");
+        }
+        else if(human == Player.BLACK){
+            blackText.setText("human");
+            whiteText.setText("cpu");
+        }
+        else{
+            blackText.setText("cpu");
+            whiteText.setText("human");
+        }
+    }
+
+    private void start() {
         observableBoard = FXCollections.observableHashMap();
         gridPane = new GridPane();
         gridPane.setPrefHeight(paneSize);
         gridPane.setPrefWidth(paneSize);
         basePane.setCenter(gridPane);
         gridPane.setAlignment(Pos.TOP_CENTER);
-
-        restartGame(boardSize);
-        updateScores();
-    }
-    private void restartGame(int size) {
-
-        System.out.println("hizo restartGame");
-        System.out.println(aiOptions);
-        observableBoard.clear();
-        gridPane.getChildren().clear();
-        System.out.println("boardsize: "+ boardSize);
-        game = new ReversiGame(boardSize, aiOptions);
-        gameState = GameState.RUNNING;
-        for (int i = 0; i < size; i++){
-            for (int j = 0; j < size; j++){
-                Point current = new Point(j, i);
-                Space space = new Space();
-                observableBoard.put(current, space);
-            }
-        }
-        observableBoard.forEach((k,v) -> {
-            v.setOnMouseClicked(e -> {
-                if(game.getTurn() == human || aiOptions.getRole() == 0)
-                if(game.movePlayer(k)) {
-                    v.updateImage(game.getPlayer(k));
-                    gameState = game.getState();
-                    drawBoard();
-                }
-            });
-            gridPane.add(v, k.getY(), k.getX());
-        });
-        drawBoard();
     }
 
     private void drawBoard() {
@@ -126,61 +184,20 @@ public class Controller {
         checkGameState(gameState);
     }
 
+    private void updateScores() {
+        blackScore.setText(String.valueOf(game.getScore(Player.BLACK)));
+        whiteScore.setText(String.valueOf(game.getScore(Player.WHITE)));
+        turnsLeft.setText(String.valueOf(game.getScore(Player.NONE)));
 
-    @FXML
-    public void handleSaveButtonAction() {
-        Stage currentStage = (Stage) ap.getScene().getWindow();
-        if(aiTree == null)
-            AlertHandler.sendInformationConfirmation(currentStage, "Warning", "No data to save.");
-
-        File selectedFile = getFileChooser().showSaveDialog(new Stage());
-        if(selectedFile != null) {
-            try {
-                saveData(selectedFile);
-                AlertHandler.sendConfirmationAlert(currentStage,
-                        "Dot file successfully saved");
-            }catch (Exception ex) {
-                ex.printStackTrace();
-                AlertHandler.sendErrorAlert(currentStage, "Error saving file");
-            }
-        }
-    }
-
-    @FXML
-    public void handleUndoButtonAction() {
-        if (game.undo() != null) {
-            gameState = game.getState();
-            drawBoard();
-        }
-    }
-
-    @FXML
-    protected void handleTreeButtonAction() {
-        Stage currentStage = (Stage) ap.getScene().getWindow();
-        if(aiTree == null)
-            AlertHandler.sendInformationConfirmation(currentStage, "Warning", "No data to save.");
-
-        File selectedFile = getFileChooser().showSaveDialog(new Stage());
-        if(selectedFile != null) {
-            try {
-                PrintWriter out = new PrintWriter(selectedFile);
-                out.println(Dot.tree(aiTree));
-                out.close();
-                AlertHandler.sendConfirmationAlert(currentStage,
-                        "Dot file successfully saved");
-            }catch (Exception ex) {
-                AlertHandler.sendErrorAlert(currentStage, "Error saving file");
-            }
-        }
-    }
-
-
-    @FXML
-    public void handleAIMove() {
-        if(game.getTurn() == cpu) {
-            aiTree = game.moveCPU();
-            gameState = game.getState();
-            drawBoard();
+        switch (game.getTurn()) {
+            case WHITE:
+                whiteScore.setUnderline(true);
+                blackScore.setUnderline(false);
+                break;
+            case BLACK:
+                whiteScore.setUnderline(false);
+                blackScore.setUnderline(true);
+                break;
         }
     }
 
@@ -207,7 +224,7 @@ public class Controller {
             restart = AlertHandler.sendGameOverAlert(currentStage, winner);
         }
         if(restart)
-            restartGame(boardSize);
+            startGame();
         else
             exit();
     }
@@ -221,26 +238,34 @@ public class Controller {
         else
             handleUndoButtonAction();
     }
+
     private void handlePassAction() {
         game.pass();
         gameState = game.getState();
         drawBoard();
     }
 
-    private void updateScores() {
-        blackScore.setText(String.valueOf(game.getScore(Player.BLACK)));
-        whiteScore.setText(String.valueOf(game.getScore(Player.WHITE)));
-        turnsLeft.setText(String.valueOf(game.getScore(Player.NONE)));
+    private void setButtonsAction() {
+        observableBoard.forEach((k,v) -> {
+            v.setOnMouseClicked(e -> {
+                if(game.getTurn() == human || aiOptions.getRole() == 0)
+                    if(game.movePlayer(k)) {
+                        v.updateImage(game.getPlayer(k));
+                        gameState = game.getState();
+                        drawBoard();
+                    }
+            });
+            gridPane.add(v, k.getY(), k.getX());
+        });
+    }
 
-        switch (game.getTurn()) {
-            case WHITE:
-                whiteScore.setUnderline(true);
-                blackScore.setUnderline(false);
-                break;
-            case BLACK:
-                whiteScore.setUnderline(false);
-                blackScore.setUnderline(true);
-                break;
+    private void buildObservableMap(int boardSize) {
+        for (int i = 0; i < boardSize; i++){
+            for (int j = 0; j < boardSize; j++){
+                Point current = new Point(j, i);
+                Space space = new Space();
+                observableBoard.put(current, space);
+            }
         }
     }
 
@@ -250,6 +275,7 @@ public class Controller {
         chooser.setInitialDirectory(Paths.get(".").toFile());
         return chooser;
     }
+
     private void saveData(File file) throws IOException {
         FileOutputStream f = new FileOutputStream(file);
         ObjectOutputStream o = new ObjectOutputStream(f);
@@ -257,5 +283,4 @@ public class Controller {
         o.close();
         f.close();
     }
-
 }
