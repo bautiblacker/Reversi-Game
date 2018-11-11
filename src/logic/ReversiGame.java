@@ -123,7 +123,8 @@ public class ReversiGame implements ReversiManager {
         Dot dot = new Dot(null, 0);
         BoardChange depthBoard = new BoardChange(board, null, null, dot);
         if(aiOptions.getType().equals("depth")) {
-            depthBoard = minimaxD(depthBoard, turn, aiOptions.getParam(),
+            int depth = aiOptions.getParam() > DEPTH_HARD_LIMIT ? DEPTH_HARD_LIMIT : aiOptions.getParam();
+            depthBoard = minimaxD(depthBoard, turn, depth,
                     Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune(), dot);
             return new BoardChangeData(depthBoard, dot);
         }

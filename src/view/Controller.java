@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Pos;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -27,6 +28,8 @@ import static javafx.application.Platform.exit;
 public class Controller {
     @FXML
     private BorderPane basePane;
+    @FXML
+    private Button moveAiButton = new Button();
     @FXML
     private Text whiteScore = new Text();
     @FXML
@@ -173,6 +176,10 @@ public class Controller {
         gridPane.setPrefWidth(paneSize);
         basePane.setCenter(gridPane);
         gridPane.setAlignment(Pos.TOP_CENTER);
+        if(aiOptions.getRole() == 0)
+            moveAiButton.setDisable(true);
+        else
+            moveAiButton.setDisable(false);
     }
 
     private void drawBoard() {
