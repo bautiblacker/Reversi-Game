@@ -1,0 +1,281 @@
+digraph { 
+0 [label="START "]
+
+0->262
+262 [label="{3, 5} 3", shape = "ellipse"]
+
+262->324
+324 [label="{5, 6} ", shape = "rectangle", style = "filled"]
+
+262->325
+325 [label="{4, 6} ", shape = "rectangle", style = "filled"]
+
+262->326
+326 [label="{3, 6} ", shape = "rectangle", style = "filled"]
+
+262->327
+327 [label="{5, 2} ", shape = "rectangle", style = "filled"]
+
+262->268
+268 [label="{4, 2} 4", shape = "ellipse", style = "filled", color = "pink"]
+
+268->277
+277 [label="{6, 2} 4", shape = "ellipse", style = "filled", color = "pink"]
+
+268->318
+318 [label="{2, 3} 4", shape = "ellipse"]
+
+268->288
+288 [label="{2, 4} 4", shape = "ellipse"]
+
+268->282
+282 [label="{3, 3} 4", shape = "ellipse"]
+
+268->307
+307 [label="{5, 2} 3", shape = "ellipse"]
+
+268->294
+294 [label="{6, 3} 4", shape = "ellipse"]
+
+268->301
+301 [label="{7, 4} 3", shape = "ellipse"]
+
+268->312
+312 [label="{7, 3} 4", shape = "ellipse"]
+
+0->5
+5 [label="{3, 3} 4", shape = "ellipse", style = "filled", color = "pink"]
+
+5->144
+144 [label="{4, 2} 3", shape = "ellipse"]
+
+144->169
+169 [label="{5, 1} ", shape = "rectangle", style = "filled"]
+
+144->168
+168 [label="{4, 6} ", shape = "rectangle", style = "filled"]
+
+144->166
+166 [label="{5, 2} ", shape = "rectangle", style = "filled"]
+
+144->167
+167 [label="{6, 2} ", shape = "rectangle", style = "filled"]
+
+144->165
+165 [label="{3, 5} ", shape = "rectangle", style = "filled"]
+
+144->163
+163 [label="{2, 4} ", shape = "rectangle", style = "filled"]
+
+144->164
+164 [label="{7, 3} ", shape = "rectangle", style = "filled"]
+
+144->153
+153 [label="{7, 4} 4", shape = "ellipse", style = "filled", color = "pink"]
+
+5->170
+170 [label="{4, 3} 3", shape = "ellipse"]
+
+170->174
+174 [label="{3, 5} 3", shape = "ellipse", style = "filled", color = "pink"]
+
+170->184
+184 [label="{7, 5} ", shape = "rectangle", style = "filled"]
+
+170->185
+185 [label="{7, 3} ", shape = "rectangle", style = "filled"]
+
+5->79
+79 [label="{3, 2} 3", shape = "ellipse"]
+
+79->98
+98 [label="{7, 5} ", shape = "rectangle", style = "filled"]
+
+79->87
+87 [label="{2, 2} 5", shape = "ellipse", style = "filled", color = "pink"]
+
+79->97
+97 [label="{7, 4} ", shape = "rectangle", style = "filled"]
+
+79->100
+100 [label="{4, 6} ", shape = "rectangle", style = "filled"]
+
+79->95
+95 [label="{3, 5} ", shape = "rectangle", style = "filled"]
+
+79->96
+96 [label="{2, 4} ", shape = "rectangle", style = "filled"]
+
+79->99
+99 [label="{7, 3} ", shape = "rectangle", style = "filled"]
+
+5->101
+101 [label="{5, 2} 3", shape = "ellipse"]
+
+101->109
+109 [label="{6, 2} 5", shape = "ellipse", style = "filled", color = "pink"]
+
+101->121
+121 [label="{5, 1} ", shape = "rectangle", style = "filled"]
+
+101->118
+118 [label="{7, 4} ", shape = "rectangle", style = "filled"]
+
+101->120
+120 [label="{4, 6} ", shape = "rectangle", style = "filled"]
+
+101->117
+117 [label="{3, 5} ", shape = "rectangle", style = "filled"]
+
+101->119
+119 [label="{7, 3} ", shape = "rectangle", style = "filled"]
+
+101->122
+122 [label="{2, 4} ", shape = "rectangle", style = "filled"]
+
+5->13
+13 [label="{6, 5} 3", shape = "ellipse", style = "filled", color = "pink"]
+
+13->63
+63 [label="{2, 4} 5", shape = "ellipse"]
+
+13->29
+29 [label="{3, 5} 5", shape = "ellipse", style = "filled", color = "pink"]
+
+13->46
+46 [label="{4, 6} 5", shape = "ellipse"]
+
+13->21
+21 [label="{5, 6} 4", shape = "ellipse"]
+
+13->37
+37 [label="{7, 4} 4", shape = "ellipse"]
+
+13->55
+55 [label="{6, 6} 5", shape = "ellipse"]
+
+13->70
+70 [label="{7, 5} 5", shape = "ellipse"]
+
+5->123
+123 [label="{5, 6} 3", shape = "ellipse"]
+
+123->138
+138 [label="{6, 6} ", shape = "rectangle", style = "filled"]
+
+123->139
+139 [label="{7, 4} ", shape = "rectangle", style = "filled"]
+
+123->141
+141 [label="{5, 7} ", shape = "rectangle", style = "filled"]
+
+123->143
+143 [label="{4, 6} ", shape = "rectangle", style = "filled"]
+
+123->140
+140 [label="{3, 5} ", shape = "rectangle", style = "filled"]
+
+123->142
+142 [label="{2, 4} ", shape = "rectangle", style = "filled"]
+
+123->131
+131 [label="{7, 5} 5", shape = "ellipse", style = "filled", color = "pink"]
+
+5->186
+186 [label="{4, 6} 3", shape = "ellipse"]
+
+186->206
+206 [label="{6, 6} ", shape = "rectangle", style = "filled"]
+
+186->194
+194 [label="{3, 5} 5", shape = "ellipse", style = "filled", color = "pink"]
+
+186->207
+207 [label="{7, 5} ", shape = "rectangle", style = "filled"]
+
+186->202
+202 [label="{7, 4} ", shape = "rectangle", style = "filled"]
+
+186->205
+205 [label="{5, 6} ", shape = "rectangle", style = "filled"]
+
+186->204
+204 [label="{4, 7} ", shape = "rectangle", style = "filled"]
+
+186->203
+203 [label="{2, 4} ", shape = "rectangle", style = "filled"]
+
+0->208
+208 [label="{7, 5} 4", shape = "ellipse"]
+
+208->261
+261 [label="{6, 6} ", shape = "rectangle", style = "filled"]
+
+208->260
+260 [label="{6, 5} ", shape = "rectangle", style = "filled"]
+
+208->257
+257 [label="{7, 4} ", shape = "rectangle", style = "filled"]
+
+208->259
+259 [label="{5, 6} ", shape = "rectangle", style = "filled"]
+
+208->258
+258 [label="{5, 2} ", shape = "rectangle", style = "filled"]
+
+208->215
+215 [label="{6, 2} 3", shape = "ellipse", style = "filled", color = "pink"]
+
+215->241
+241 [label="{2, 4} 3", shape = "ellipse"]
+
+215->249
+249 [label="{3, 5} 5", shape = "ellipse"]
+
+215->227
+227 [label="{3, 3} 5", shape = "ellipse"]
+
+215->221
+221 [label="{4, 2} 5", shape = "ellipse", style = "filled", color = "pink"]
+
+215->235
+235 [label="{5, 2} 4", shape = "ellipse"]
+
+0->328
+328 [label="{7, 3} 4", shape = "ellipse"]
+
+328->382
+382 [label="{6, 6} ", shape = "rectangle", style = "filled"]
+
+328->381
+381 [label="{7, 4} ", shape = "rectangle", style = "filled"]
+
+328->385
+385 [label="{5, 6} ", shape = "rectangle", style = "filled"]
+
+328->383
+383 [label="{5, 2} ", shape = "rectangle", style = "filled"]
+
+328->384
+384 [label="{6, 2} ", shape = "rectangle", style = "filled"]
+
+328->335
+335 [label="{6, 5} 3", shape = "ellipse", style = "filled", color = "pink"]
+
+335->374
+374 [label="{2, 4} 3", shape = "ellipse"]
+
+335->341
+341 [label="{3, 5} 5", shape = "ellipse", style = "filled", color = "pink"]
+
+335->358
+358 [label="{4, 6} 5", shape = "ellipse"]
+
+335->350
+350 [label="{5, 6} 4", shape = "ellipse"]
+
+335->366
+366 [label="{6, 6} 5", shape = "ellipse"]
+
+}
+
