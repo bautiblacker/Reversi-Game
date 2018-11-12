@@ -3,8 +3,8 @@ package view;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
-import javafx.geometry.Pos;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -12,13 +12,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import logic.*;
-import logic.ai.Dot;
-import logic.gameObjects.GameState;
-import logic.gameObjects.Player;
-import utils.AI;
-import utils.AlertHandler;
-import utils.Point;
+import model.logic.ReversiGame;
+import model.ReversiManager;
+import model.ai.Dot;
+import model.GameState;
+import model.Player;
+import model.wrappers.AI;
+import view.utils.AlertHandler;
+import model.Point;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -72,14 +73,6 @@ public class Controller {
     }
 
     @FXML
-    public void handleUndoButtonAction() {
-        if (game.undo() != null) {
-            gameState = game.getState();
-            drawBoard();
-        }
-    }
-
-    @FXML
     public void handleTreeButtonAction() {
         Stage currentStage = (Stage) ap.getScene().getWindow();
         if(aiTree == null)
@@ -95,6 +88,14 @@ public class Controller {
             }catch (Exception ex) {
                 AlertHandler.sendErrorAlert(currentStage, "Error saving file");
             }
+        }
+    }
+
+    @FXML
+    public void handleUndoButtonAction() {
+        if (game.undo() != null) {
+            gameState = game.getState();
+            drawBoard();
         }
     }
 
@@ -184,9 +185,8 @@ public class Controller {
 
     private void drawBoard() {
         observableBoard.forEach( (k, v) -> v.updateImage(game.getPlayer(k)));
-        //TODO extract possible.png into Space.
         for(Point point : game.getPossibleMoves())
-            observableBoard.get(point).updateImage("possible.png");
+            observableBoard.get(point).setToPossible();
         updateScores();
         checkGameState(gameState);
     }

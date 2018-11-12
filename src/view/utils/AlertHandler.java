@@ -1,11 +1,11 @@
 
-package utils;
+package view.utils;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
-import logic.gameObjects.Player;
+import model.Player;
 
 import java.util.Optional;
 
@@ -45,17 +45,17 @@ public class AlertHandler {
             message = player + " won!";
         String okText = "Restart";
         String notOkText = "Exit";
-        return sendAlert(stage, player, message, okText, notOkText);
+        return sendAlert(stage, message, okText, notOkText);
 
     }
     public static boolean sendOutOfMovesAlert(Stage stage, Player player) {
         String message = player + " is out of moves.";
         String okText = "Pass";
         String notOkText = "Undo";
-        return sendAlert(stage, player, message, okText, notOkText);
+        return sendAlert(stage, message, okText, notOkText);
     }
 
-    private static boolean sendAlert(Stage stage, Player player, String message, String okText, String notOkText){
+    private static boolean sendAlert(Stage stage, String message, String okText, String notOkText){
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message);
         alert.initOwner(stage);
         Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);

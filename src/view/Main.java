@@ -1,18 +1,16 @@
 package view;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import logic.ReversiGame;
-import logic.ReversiManager;
-import logic.ai.ScoreCornerWeightEval;
-import logic.gameObjects.Player;
-import utils.AI;
-import utils.AlertHandler;
+import model.Player;
+import model.ReversiManager;
+import model.logic.ReversiGame;
+import model.wrappers.AI;
+import view.utils.AlertHandler;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,10 +19,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.lang.System.exit;
-import static java.lang.System.setErr;
 
 public class Main extends Application {
 
@@ -35,7 +31,7 @@ public class Main extends Application {
     private boolean loadedGame = false;
     private ReversiGame oldGame;
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) {
         try {
             //Load the fxml file and creat e a new stage for the task program.
             FXMLLoader loader = new FXMLLoader();
@@ -44,7 +40,7 @@ public class Main extends Application {
 
             //Set the stage for the task program.
             primaryStage.setTitle("Reversi");
-            // primaryStage.getIcons().add(new Image("icon.png"));
+            primaryStage.getIcons().add(new Image("icon.png"));
             primaryStage.setScene(new Scene(root, 600, 600));
             primaryStage.setResizable(false);
             primaryStage.show();

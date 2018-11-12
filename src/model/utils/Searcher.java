@@ -1,7 +1,9 @@
-package model;
+package model.utils;
 
-import utils.Direction;
-import utils.Point;
+import model.Board;
+import model.Direction;
+import model.Player;
+import model.Point;
 
 import java.util.Collection;
 import java.util.HashMap;

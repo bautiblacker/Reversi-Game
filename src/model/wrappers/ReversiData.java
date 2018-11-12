@@ -1,10 +1,11 @@
-package model;
+package model.wrappers;
 
-import utils.Point;
+import model.Point;
 
+import java.io.Serializable;
 import java.util.Collection;
 
-public class ReversiData {
+public class ReversiData implements Serializable {
     private Point placed;
     private Collection<Point> flipped;
 

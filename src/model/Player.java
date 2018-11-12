@@ -1,6 +1,8 @@
 package model;
 
-public enum Player {
+import java.io.Serializable;
+
+public enum Player implements Serializable {
 
     NONE,
     WHITE,
@@ -8,9 +10,5 @@ public enum Player {
 
     public Player opposite() {
         return this == WHITE ? BLACK : this == BLACK ? WHITE : NONE;
-    }
-
-    public String getColor() {
-        return this == Player.WHITE ? "WHITE" : "BLACK";
     }
 }

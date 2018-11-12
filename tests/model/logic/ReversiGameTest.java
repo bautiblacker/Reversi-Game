@@ -1,14 +1,15 @@
-package model;
+package model.logic;
 
-import org.junit.jupiter.api.BeforeEach;
+import model.Player;
+import model.Point;
+import model.ReversiManager;
+import model.logic.ReversiGame;
 import org.junit.jupiter.api.Test;
-import utils.AI;
-import utils.Point;
+import model.wrappers.AI;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 @SuppressWarnings("Duplicates")
@@ -18,13 +19,13 @@ class ReversiGameTest {
     @Test
     void move() {
         game = new ReversiGame(8, new AI(0, null, 0, false));
-        assertTrue(game.move(new Point(2, 3)));
-        assertFalse(game.move(new Point(2, 3)));
+        assertTrue(game.movePlayer(new Point(2, 3)));
+        assertFalse(game.movePlayer(new Point(2, 3)));
     }
     @Test
     void colorsFlipCorrectly() {
         game = new ReversiGame(8, new AI(0, null, 0, false));
-        game.move(new Point(2, 3));
+        game.movePlayer(new Point(2, 3));
         Player expected = Player.BLACK;
         Player actual = game.getPlayer(new Point(3, 3));
         assertSame(expected, actual);
@@ -32,9 +33,9 @@ class ReversiGameTest {
     @Test
     void colorsFlipCorrectly2() {
         game = new ReversiGame(4, new AI(0, null, 0, false));
-        game.move(new Point(0, 1));
-        game.move(new Point(0, 2));
-        game.move(new Point(0, 3));
+        game.movePlayer(new Point(0, 1));
+        game.movePlayer(new Point(0, 2));
+        game.movePlayer(new Point(0, 3));
         Player expected = Player.BLACK;
         Player actual1 = game.getPlayer(new Point(0, 2));
         Player actual2 = game.getPlayer(new Point(1, 2));
