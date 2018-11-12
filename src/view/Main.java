@@ -53,9 +53,8 @@ public class Main extends Application {
             while(it.hasNext()) {
                 String aux;
                 aux = it.next();
-                if(aux.charAt(0) == '-')
-                    if(it.hasNext())
-                        map.put(aux.substring(1), it.next());
+                if(it.hasNext())
+                    map.put(aux.substring(1), it.next());
             }
 
             updateArgs(map);
@@ -75,9 +74,10 @@ public class Main extends Application {
         }catch (IOException e) {
             e.printStackTrace();
             AlertHandler.sendErrorAlert(primaryStage, "Error loading FXML file");
+            exit(1);
         }catch (IllegalArgumentException ex){
             AlertHandler.sendErrorAlert(primaryStage, ex.getMessage());
-            exit(1);
+            exit(3);
         }
 
     }
@@ -161,8 +161,10 @@ public class Main extends Application {
             o.close();
         } catch (IOException ex) {
             AlertHandler.sendErrorAlert(primarySage, "Error loading game file");
+            exit(2);
         }catch (ClassNotFoundException ex){
             ex.printStackTrace();
+            exit(4);
         }
         loadedGame = true;
         game = new ReversiGame(oldGame, aiOptions);
