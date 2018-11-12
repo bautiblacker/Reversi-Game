@@ -1,8 +1,9 @@
 package utils;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Point {
+public class Point implements Serializable {
     private int x;
     private int y;
 
@@ -32,5 +33,10 @@ public class Point {
     public int hashCode() {
 
         return Objects.hash(getX(), getY());
+    }
+
+    @Override
+    public String toString() {
+        return "{" + getX()+ ", " + getY()+"}";
     }
 }

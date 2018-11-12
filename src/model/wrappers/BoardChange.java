@@ -1,15 +1,17 @@
-package model;
+package model.wrappers;
 
-import utils.Point;
+import model.Board;
+import model.Point;
+import model.ai.Dot;
 
 import java.util.Collection;
 
 public class BoardChange {
     private Board board;
-    private Point place; //Point to place
-    private Collection<Point> flip; //Points to flip
+    private Point place;
+    private Collection<Point> flip;
 
-    public BoardChange(Board board, Point place, Collection<Point> flip) {
+    public BoardChange(Board board, Point place, Collection<Point> flip, Dot dot) {
         this.board = board;
         this.place = place;
         this.flip = flip;

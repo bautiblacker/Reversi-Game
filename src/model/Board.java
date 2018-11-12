@@ -1,14 +1,12 @@
 package model;
 
-import utils.Direction;
-import utils.Point;
-
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class Board {
+public class Board implements Serializable {
     private int boardSize;
     private Map<Point, Player> board;
 
@@ -17,30 +15,6 @@ public class Board {
         board = new HashMap<>(boardSize * boardSize);
         initBoard();
     }
-    public Board(int boardSize, Map<Point, Player> board) {
-        this.boardSize = boardSize;
-        this.board = new HashMap<>();
-        board.forEach((k,v) -> this.board.put(k,v));
-    }
-
-    public Player getPlayer(Point point) {
-        return board.get(point);
-    }
-
-    public void setPlayer(Point point, Player player) {
-        board.put(point, player);
-    }
-
-    public int getCount(Player player) {
-        return (int) board.values()
-                .stream()
-                .filter(player1 -> player1.equals(player))
-                .count();
-    }
-    public int getSize() {
-        return boardSize;
-    }
-
     public boolean flip(Collection<Point> points) {
         for(Point point : points) {
             if(!board.containsKey(point))
@@ -49,19 +23,20 @@ public class Board {
         }
         return true;
     }
-
-    private void initBoard() {
-        for (int x = 0; x < boardSize; x++) {
-            for (int y = 0; y < boardSize; y++) {
-                board.put(new Point(x, y), Player.NONE);
-            }
-        }
-        int center1 = boardSize / 2 - 1;
-        int center2 = boardSize / 2;
-        board.put(new Point(center1, center1), Player.WHITE);
-        board.put(new Point(center2, center1), Player.BLACK);
-        board.put(new Point(center1, center2), Player.BLACK);
-        board.put(new Point(center2, center2), Player.WHITE);
+    public Player getPlayer(Point point) {
+        return board.get(point);
+    }
+    public void setPlayer(Point point, Player player) {
+        board.put(point, player);
+    }
+    public int getCount(Player player) {
+        return (int) board.values()
+                .stream()
+                .filter(player1 -> player1.equals(player))
+                .count();
+    }
+    public int getSize() {
+        return boardSize;
     }
     public Collection<Point> findMatchingPoints(Player playerToMatch) {
         Collection<Point> toReturn = new HashSet<>();
@@ -74,8 +49,17 @@ public class Board {
     public boolean isValidPosition(Point point) {
         return board.containsKey(point);
     }
-
-    public Board getBoardCopy() {
-        return new Board(boardSize, this.board);
+    private void initBoard() {
+        for (int x = 0; x < boardSize; x++) {
+            for (int y = 0; y < boardSize; y++) {
+                board.put(new Point(x, y), Player.NONE);
+            }
+        }
+        int center1 = boardSize / 2 - 1;
+        int center2 = boardSize / 2;
+        board.put(new Point(center1, center1), Player.WHITE);
+        board.put(new Point(center2, center1), Player.BLACK);
+        board.put(new Point(center1, center2), Player.BLACK);
+        board.put(new Point(center2, center2), Player.WHITE);
     }
 }

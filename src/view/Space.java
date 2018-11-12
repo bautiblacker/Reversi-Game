@@ -3,7 +3,7 @@ package view;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import logic.gameObjects.Player;
+import model.Player;
 
 public class Space extends Button {
     private final int width = 22;
@@ -14,6 +14,8 @@ public class Space extends Button {
             true, true));
     private ImageView white = new ImageView(new Image("white.png", width, height,
             true, true));
+    private ImageView possible = new ImageView(new Image("possible.png", width, height,
+            false, true));
 
     public void updateImage(Player player) {
 
@@ -30,8 +32,7 @@ public class Space extends Button {
         }
     }
 
-    public void updateImage(String url) {
-        setGraphic(new ImageView(new Image(url, width, height,
-                false, true)));
+    public void setToPossible() {
+        setGraphic(possible);
     }
 }

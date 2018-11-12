@@ -2,12 +2,13 @@ package logic.gameObjects;
 
 import utils.Point;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class Board {
+public class Board implements Serializable {
     private int boardSize;
     private Map<Point, Player> board;
 

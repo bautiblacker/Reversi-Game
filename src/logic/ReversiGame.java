@@ -1,6 +1,8 @@
 package logic;
 
 import logic.ai.BoardChange;
+import logic.ai.BoardChangeData;
+import logic.ai.Dot;
 import logic.ai.Evaluator;
 import logic.gameObjects.Board;
 import logic.gameObjects.GameState;
@@ -8,10 +10,13 @@ import logic.gameObjects.Player;
 import logic.utils.Searcher;
 import utils.AI;
 import utils.Point;
+import utils.TimeLimit;
 
 import java.util.*;
 
 public class ReversiGame implements ReversiManager {
+    //Depth limit to avoid using too much memory and lagging the game while running against ai in time mode.
+    public static final int DEPTH_HARD_LIMIT = 10;
     private Board board;
     private Player turn;
     private Stack<ReversiData> undoStack;
@@ -33,13 +38,6 @@ public class ReversiGame implements ReversiManager {
         this.aiOptions = newAi;
     }
 
-    private void move(Point point) {
-        Collection<Point> toFlip = possibleMovesMap.get(point);
-        board = makeBoardMove(board, turn, point, toFlip);
-        undoStack.push(new ReversiData(point,toFlip));
-        turn = turn.opposite();
-        possibleMovesMap = Searcher.findPossibleMoves(board, turn);
-    }
     @Override
     public boolean movePlayer(Point point){
         if(!isValidMove(point)) {
@@ -48,22 +46,25 @@ public class ReversiGame implements ReversiManager {
         move(point);
         return true;
     }
-
     @Override
-    public Point moveCPU() {
-        BoardChange minimax = minimax();
+    public Dot moveCPU() {
+        BoardChangeData minimax = minimax();
         if(minimax == null)
             return null;
-        move(minimax.getPlace());
-        return minimax.getPlace();
+        move(minimax.getBoardChange().getPlace());
+        return minimax.getDot();
     }
 
+    @Override
+    public int getBoardSize() {
+        return board.getSize();
+    }
     @Override
     public ReversiData undo() {
         if(undoStack.isEmpty())
             return null;
         ReversiData aux = undoStack.pop();
-        board = undoBoardMove(board, turn, aux.getPlaced(), aux.getFlipped());
+        board = undoBoardMove(board, aux.getPlaced(), aux.getFlipped());
         turn = turn.opposite();
         possibleMovesMap = Searcher.findPossibleMoves(board, turn);
         return aux;
@@ -109,40 +110,64 @@ public class ReversiGame implements ReversiManager {
         return GameState.RUNNING;
     }
 
-
-    private Collection<BoardChange> getPossibleBoardChanges(Board board, Player player) {
-        Collection<BoardChange> boardChanges = new HashSet<>();
-        Searcher.findPossibleMoves(board, player).forEach((point, points) -> {
-            boardChanges.add(new BoardChange(board, point, points));
-        });
-        return boardChanges;
+    private void move(Point point) {
+        Collection<Point> toFlip = possibleMovesMap.get(point);
+        board = makeBoardMove(board, turn, point, toFlip);
+        undoStack.push(new ReversiData(point,toFlip));
+        turn = turn.opposite();
+        possibleMovesMap = Searcher.findPossibleMoves(board, turn);
     }
 
-    private BoardChange minimax() {
-        BoardChange toEval = new BoardChange(board, null, null);
-        if(aiOptions.getType().equals("depth"))
-           return minimaxD(toEval, turn, aiOptions.getParam(),
-                   Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune() );
+    private BoardChangeData minimax() {
+        Dot.resetCounter();
+        Dot dot = new Dot(null, 0);
+        BoardChange depthBoard = new BoardChange(board, null, null, dot);
+        if(aiOptions.getType().equals("depth")) {
+            int depth = aiOptions.getParam() > DEPTH_HARD_LIMIT ? DEPTH_HARD_LIMIT : aiOptions.getParam();
+            depthBoard = minimaxD(depthBoard, turn, depth,
+                    Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune(), dot);
+            return new BoardChangeData(depthBoard, dot);
+        }
         if(aiOptions.getType().equals("time")){
             //Not working correctly
-            long start = System.currentTimeMillis();
-            long timeLimit = start + aiOptions.getParam()*1000;
+
+            TimeLimit timeLimit = new TimeLimit(aiOptions.getParam()*1000);
             int depth = 1;
-            BoardChange timeBoard = minimaxD(toEval, turn, depth,
-                    Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune() );
+            BoardChange timeBoard = minimaxT(depthBoard, turn, depth,
+                    Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune(), dot, timeLimit );
 
-            while(System.currentTimeMillis() < timeLimit ) {
-                timeBoard = minimaxD(new BoardChange(board, null, null), turn, depth++,
-                        Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune());
+            while(!timeLimit.isExceeded() && depth <= DEPTH_HARD_LIMIT) {
 
+                BoardChange auxBoard = minimaxT(new BoardChange(board, null, null, dot), turn, depth++,
+                        Integer.MIN_VALUE, Integer.MAX_VALUE, true, aiOptions.isPrune(), dot, timeLimit);
+                if(!timeLimit.isAborted())
+                    timeBoard = auxBoard;
+
+                //Gives time for the stack to clear from the recursive function.
+                //Without this the game hangs on certain computers.
+                try {
+                    Thread.sleep(700);
+                }catch (InterruptedException ex){
+                    ex.printStackTrace();
+                }
             }
-            return timeBoard;
+            return new BoardChangeData(timeBoard, dot);
         }
         return null;
     }
 
+    private Collection<BoardChange> getPossibleBoardChanges(Board board, Player player) {
+        Collection<BoardChange> boardChanges = new HashSet<>();
+        Searcher.findPossibleMoves(board, player).forEach((point, points) -> {
+            Dot dot = new Dot(point, 0);
+            boardChanges.add(new BoardChange(board, point, points, dot));
+        });
+        return boardChanges;
+    }
+
+    @SuppressWarnings("Duplicates")
     private BoardChange minimaxD(BoardChange boardChange, Player player, int depth, int alpha, int beta, boolean isMax,
-                           boolean isPrune) {
+                           boolean isPrune, Dot dot) {
         Collection<BoardChange> possibles = getPossibleBoardChanges(boardChange.getBoard(), player);
         if(depth == 0 || possibles.size() == 0) {
             return boardChange;
@@ -150,44 +175,161 @@ public class ReversiGame implements ReversiManager {
         if(isMax) {
             int value = Integer.MIN_VALUE;
             BoardChange maxBoardChange = null;
+            Dot maxDot = null;
+            boolean wasPruned = false;
             for(BoardChange possible : possibles) {
-                makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
-                Board nextBoard = minimaxD(possible, player.opposite(), depth -1, alpha, beta, false,
-                        isPrune).getBoard();
-                int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
-                if( auxValue > value) {
-                    maxBoardChange = possible;
-                    value = auxValue;
-                }
-                undoBoardMove(nextBoard, player.opposite(), possible.getPlace(), possible.getFlip());
-                if(isPrune) {
-                    alpha = Math.max(alpha, value);
-                    if (beta <= alpha) {
-                        break; //prunes subtree
+                Dot auxDot = new Dot(possible.getPlace(), 0);
+                if(!wasPruned) {
+                    makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
+                    BoardChange nextBoardChange = minimaxD(possible, player.opposite(), depth - 1, alpha, beta, false,
+                            isPrune, auxDot);
+                    Board nextBoard = nextBoardChange.getBoard();
+                    int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
+                    auxDot.setValue(auxValue);
+                    if (auxValue > value) {
+                        maxBoardChange = possible;
+                        maxDot = auxDot;
+                        value = auxValue;
+                    }
+                    undoBoardMove(nextBoard, possible.getPlace(), possible.getFlip());
+                    if (isPrune) {
+                        alpha = Math.max(alpha, value);
+                        if (beta <= alpha) {
+                            wasPruned = true; //prunes subtree
+                        }
                     }
                 }
+                else {
+                    auxDot.setPruned(true);
+                    dot.getNeighbours().add(auxDot);
+                }
+                dot.getNeighbours().add(auxDot);
             }
+            if(maxDot != null)
+                maxDot.setChosen(true);
+
             return maxBoardChange;
         }
         else {
             int value = Integer.MAX_VALUE;
             BoardChange minBoardChange = null;
+            Dot minDot = null;
+            boolean wasPruned = false;
             for(BoardChange possible : possibles) {
-                makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
-                Board nextBoard = minimaxD(possible, player.opposite(), depth-1, alpha, beta, true, isPrune).getBoard();
-                int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
-                if( auxValue < value) {
-                    minBoardChange = possible;
-                    value = auxValue;
-                }
-                undoBoardMove(nextBoard, player.opposite(), possible.getPlace(), possible.getFlip());
-                if(isPrune) {
-                    beta = Math.min(beta, value);
-                    if(beta <= alpha) {
-                        break; //prunes subtree
+                Dot auxDot = new Dot(possible.getPlace(), 0);
+                if(!wasPruned) {
+                    makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
+                    BoardChange nextBoardChange = minimaxD(possible, player.opposite(), depth - 1, alpha, beta, true, isPrune, auxDot);
+                    Board nextBoard = nextBoardChange.getBoard();
+                    int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
+                    auxDot.setValue(auxValue);
+                    if (auxValue < value) {
+                        minBoardChange = possible;
+                        value = auxValue;
+                        minDot = auxDot;
+
+                    }
+                    undoBoardMove(nextBoard, possible.getPlace(), possible.getFlip());
+                    if (isPrune) {
+                        beta = Math.min(beta, value);
+                        if (beta <= alpha) {
+                            wasPruned = true; //prunes subtree
+                        }
                     }
                 }
+                else {
+                    auxDot.setPruned(true);
+                    dot.getNeighbours().add(auxDot);
+                }
+                dot.getNeighbours().add(auxDot);
             }
+            if(minDot != null)
+                minDot.setChosen(true);
+
+            return minBoardChange;
+        }
+    }
+    private BoardChange minimaxT(BoardChange boardChange, Player player, int depth, int alpha, int beta, boolean isMax,
+                                 boolean isPrune, Dot dot, TimeLimit timeLimit) {
+        Collection<BoardChange> possibles = getPossibleBoardChanges(boardChange.getBoard(), player);
+        if(depth == 0 ||  timeLimit.isExceeded()|| possibles.size() == 0) {
+            timeLimit.setAborted(true);
+            return boardChange;
+        }
+        if(isMax) {
+            int value = Integer.MIN_VALUE;
+            BoardChange maxBoardChange = null;
+            Dot maxDot = null;
+            boolean wasPruned = false;
+            for(BoardChange possible : possibles) {
+                Dot auxDot = new Dot(possible.getPlace(), 0);
+                if(!wasPruned) {
+                    makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
+                    BoardChange nextBoardChange = minimaxD(possible, player.opposite(), depth - 1, alpha, beta, false,
+                            isPrune, auxDot);
+                    Board nextBoard = nextBoardChange.getBoard();
+                    int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
+                    auxDot.setValue(auxValue);
+                    if (auxValue > value) {
+                        maxBoardChange = possible;
+                        maxDot = auxDot;
+                        value = auxValue;
+                    }
+                    undoBoardMove(nextBoard, possible.getPlace(), possible.getFlip());
+                    if (isPrune) {
+                        alpha = Math.max(alpha, value);
+                        if (beta <= alpha) {
+                            wasPruned = true; //prunes subtree
+                        }
+                    }
+                }
+                else {
+                    auxDot.setPruned(true);
+                    dot.getNeighbours().add(auxDot);
+                }
+                dot.getNeighbours().add(auxDot);
+            }
+            if(maxDot != null)
+                maxDot.setChosen(true);
+
+            return maxBoardChange;
+        }
+        else {
+            int value = Integer.MAX_VALUE;
+            BoardChange minBoardChange = null;
+            Dot minDot = null;
+            boolean wasPruned = false;
+            for(BoardChange possible : possibles) {
+                Dot auxDot = new Dot(possible.getPlace(), 0);
+                if(!wasPruned) {
+                    makeBoardMove(possible.getBoard(), player, possible.getPlace(), possible.getFlip());
+                    BoardChange nextBoardChange = minimaxD(possible, player.opposite(), depth - 1, alpha, beta, true, isPrune, auxDot);
+                    Board nextBoard = nextBoardChange.getBoard();
+                    int auxValue = Evaluator.evaluate(nextBoard, player.opposite());
+                    auxDot.setValue(auxValue);
+                    if (auxValue < value) {
+                        minBoardChange = possible;
+                        value = auxValue;
+                        minDot = auxDot;
+
+                    }
+                    undoBoardMove(nextBoard, possible.getPlace(), possible.getFlip());
+                    if (isPrune) {
+                        beta = Math.min(beta, value);
+                        if (beta <= alpha) {
+                            wasPruned = true; //prunes subtree
+                        }
+                    }
+                }
+                else {
+                    auxDot.setPruned(true);
+                    dot.getNeighbours().add(auxDot);
+                }
+                dot.getNeighbours().add(auxDot);
+            }
+            if(minDot != null)
+                minDot.setChosen(true);
+
             return minBoardChange;
         }
     }
@@ -197,7 +339,7 @@ public class ReversiGame implements ReversiManager {
         board.flip(toFlip);
         return board;
     }
-    private Board undoBoardMove(Board board, Player player, Point toRemove, Collection<Point> toFlip) {
+    private Board undoBoardMove(Board board, Point toRemove, Collection<Point> toFlip) {
         board.setPlayer(toRemove, Player.NONE);
         board.flip(toFlip);
         return board;

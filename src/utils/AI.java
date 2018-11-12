@@ -1,6 +1,8 @@
 package utils;
 
-public class AI {
+import java.io.Serializable;
+
+public class AI implements Serializable {
     private int role;
     private String type;
     private int param;
@@ -10,6 +12,25 @@ public class AI {
         this.role = role;
         this.type = type;
         this.param = param;
+        this.prune = prune;
+    }
+    public AI() {
+
+    }
+
+    public void setRole(int role) {
+        this.role = role;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setParam(int param) {
+        this.param = param;
+    }
+
+    public void setPrune(boolean prune) {
         this.prune = prune;
     }
 
@@ -27,5 +48,15 @@ public class AI {
 
     public boolean isPrune() {
         return prune;
+    }
+
+    @Override
+    public String toString() {
+        return "AI{" +
+                "role=" + role +
+                ", type='" + type + '\'' +
+                ", param=" + param +
+                ", prune=" + prune +
+                '}';
     }
 }
