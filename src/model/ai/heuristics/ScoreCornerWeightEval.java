@@ -65,7 +65,7 @@ public class ScoreCornerWeightEval {
 
 
     public int evaluate(Board board, Player player) {
-        int score = board.getCount(player) - board.getCount(player.opposite());
+        int score = board.getCount(player);
         for(Point vip : pointsValue.keySet()) {
             if(board.getPlayer(vip) == player)
                 score +=  pointsValue.get(vip);

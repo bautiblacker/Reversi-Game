@@ -17,7 +17,7 @@ import java.util.Stack;
 
 public class ReversiGame implements ReversiManager {
     //Depth limit to avoid using too much memory and lagging the game while running against ai in time mode.
-    public static final int DEPTH_HARD_LIMIT = 10;
+    public static final int DEPTH_HARD_LIMIT = 8;
     private Board board;
     private Player turn;
     private Stack<ReversiData> undoStack;
