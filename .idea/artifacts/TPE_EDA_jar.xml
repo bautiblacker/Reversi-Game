@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TPE_EDA:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/TPE_EDA_jar</output-path>
+    <root id="archive" name="TPE_EDA.jar">
+      <element id="module-output" name="TPE_EDA" />
+    </root>
+  </artifact>
+</component>

@@ -12,14 +12,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import model.logic.ReversiGame;
-import model.ReversiManager;
-import model.ai.Dot;
 import model.GameState;
 import model.Player;
+import model.Point;
+import model.ReversiManager;
+import model.ai.Dot;
+import model.logic.ReversiGame;
 import model.wrappers.AI;
 import view.utils.AlertHandler;
-import model.Point;
 
 import java.io.*;
 import java.nio.file.Paths;

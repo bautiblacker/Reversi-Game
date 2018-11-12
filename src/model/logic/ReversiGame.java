@@ -1,12 +1,13 @@
 package model.logic;
 
 import model.*;
-import model.wrappers.BoardChange;
-import model.wrappers.AI;
-import model.wrappers.BoardChangeData;
 import model.ai.Dot;
 import model.ai.Evaluator;
-import model.utils.*;
+import model.utils.Searcher;
+import model.utils.TimeLimit;
+import model.wrappers.AI;
+import model.wrappers.BoardChange;
+import model.wrappers.BoardChangeData;
 import model.wrappers.ReversiData;
 
 import java.util.Collection;

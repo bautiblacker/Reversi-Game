@@ -71,9 +71,6 @@ public class Main extends Application {
             else
                 gameController.startGame();
 
-            if(aiOptions.getType().equals("depth") && aiOptions.getParam() > ReversiGame.DEPTH_HARD_LIMIT)
-                System.err.println("WARNING: depth is larger than maximum depth. Depth will be set as "
-                        + ReversiGame.DEPTH_HARD_LIMIT + ".");
 
         }catch (IOException e) {
             e.printStackTrace();
@@ -119,6 +116,9 @@ public class Main extends Application {
                 aiOptions.setPrune((args.get("prune").equals("on")));
             else
                 throw new IllegalArgumentException("Invalid prune option.");
+            if(aiOptions.getType().equals("depth") && aiOptions.getParam() > ReversiGame.DEPTH_HARD_LIMIT)
+                System.err.println("WARNING: depth is larger than maximum depth. Depth will be set as "
+                        + ReversiGame.DEPTH_HARD_LIMIT + ".");
         }
 
         if(game == null)

@@ -1,8 +1,8 @@
 package model.ai.heuristics;
 
 import model.Board;
-import model.Player;
 import model.Direction;
+import model.Player;
 import model.Point;
 
 import java.util.*;

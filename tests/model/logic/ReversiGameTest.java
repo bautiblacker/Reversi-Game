@@ -4,8 +4,8 @@ import model.Player;
 import model.Point;
 import model.ReversiManager;
 import model.logic.ReversiGame;
-import org.junit.jupiter.api.Test;
 import model.wrappers.AI;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
