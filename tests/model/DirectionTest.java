@@ -1,7 +1,6 @@
 package model;
 
-import model.Direction;
-import model.Point;
+import model.utils.Direction;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

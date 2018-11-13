@@ -1,4 +1,6 @@
-package model;
+package model.utils;
+
+import model.Point;
 
 public enum Direction {
     UP(-1, 0),

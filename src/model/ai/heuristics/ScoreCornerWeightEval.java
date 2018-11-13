@@ -1,7 +1,7 @@
 package model.ai.heuristics;
 
 import model.Board;
-import model.Direction;
+import model.utils.Direction;
 import model.Player;
 import model.Point;
 

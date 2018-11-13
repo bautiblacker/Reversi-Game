@@ -1,7 +1,6 @@
 package model.utils;
 
 import model.Board;
-import model.Direction;
 import model.Player;
 import model.Point;
 
