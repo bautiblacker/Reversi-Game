@@ -1,6 +1,8 @@
+Descomprimir el zip y navegar hasta la carpeta donde se encuentran los datos.
+
 El programa se ejecuta de la siguente manera: 
 ```
-$ java -jar tpe.jar -size [n] -ai [m] -mode [time|depth] -param [k] -prune [on|off] -load [file]
+$ java -jar TPE_EDA.jar -size [n] -ai [m] -mode [time|depth] -param [k] -prune [on|off] -load [file]
 ```
 
 Donde:
